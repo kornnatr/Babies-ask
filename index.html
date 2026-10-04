@@ -44,7 +44,7 @@ h3{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute
 
 /* record */
 .recbox{display:flex;flex-direction:column;align-items:center;gap:10px;padding-block:8px}
-.recbtn{position:relative;width:min(56vw,220px);aspect-ratio:1;border-radius:50%;border:none;background:var(--rec);color:#fff;font-family:var(--f-display);font-size:22px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 0 0 calc(var(--lvl,0)*28px + 8px) color-mix(in srgb,var(--rec) 22%,transparent);transition:box-shadow .08s linear}
+.recbtn{position:relative;margin-block:22px;width:min(56vw,220px);aspect-ratio:1;border-radius:50%;border:none;background:var(--rec);color:#fff;font-family:var(--f-display);font-size:22px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 0 0 calc(var(--lvl,0)*28px + 8px) color-mix(in srgb,var(--rec) 22%,transparent);transition:box-shadow .08s linear}
 .recbtn small{font-family:var(--f-body);font-size:13px;opacity:.9}
 .recbtn.on{background:var(--ink);color:var(--bg)}
 .recbtn:disabled{opacity:.6}
@@ -113,20 +113,38 @@ nav.bottom button{flex:1;max-width:284px;font:inherit;font-weight:500;padding:10
 nav.bottom button[aria-selected="true"]{background:var(--soft);color:var(--ink)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:30;max-width:calc(100% - 32px)}
 .foot{font-size:12px;color:var(--muted)}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.hicon{width:44px;height:44px;border-radius:12px;flex:none}
+header button.name{background:none;border:none;padding:0;color:var(--ink);cursor:pointer;text-align:left;font-family:var(--f-display);font-weight:500;font-size:22px}
+header button.name::after{content:" ▾";font-size:14px;color:var(--muted)}
+.clock{font-family:var(--f-mono);font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;text-align:center}
+.clock small{display:block;font-family:var(--f-body);font-size:12px;color:var(--muted)}
+.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:13px;color:var(--muted)}
+input[type=text],input[type=date],select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%}
+.gwrow{display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;font-size:14px;padding:6px 0;border-top:1px solid var(--line)}
+.gwrow .num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
 @media (prefers-reduced-motion:reduce){.recbtn{transition:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <p class="app">Babies ask</p>
-    <p class="name">วิคเตอร์</p>
+    <div class="hrow">
+      <div style="min-width:0">
+        <p class="app">Babies ask</p>
+        <button class="name" id="baby-name" type="button" aria-label="เปลี่ยนหรือแก้ไขข้อมูลน้อง">–</button>
+      </div>
+      <img src="icon-192.png" alt="" class="hicon" width="44" height="44">
+    </div>
     <div class="meta"><span>อายุ <b id="age">–</b></span><span>กินล่าสุด <b id="lastfeed">ยังไม่มีบันทึก</b></span></div>
   </header>
 
   <!-- NOW -->
   <main id="pane-now" style="display:flex;flex-direction:column;gap:16px">
     <div class="recbox">
+      <div class="clock" id="clock" aria-live="off">–</div>
       <button class="recbtn" id="rec"><span id="rec-label">อัดเสียงร้อง</span><small id="rec-sub">แตะเพื่อเริ่ม</small></button>
       <div class="live" id="live"></div>
     </div>
@@ -152,20 +170,61 @@ nav.bottom button[aria-selected="true"]{background:var(--soft);color:var(--ink)}
     <div class="tl" id="timeline"></div>
     <p class="foot">ข้อมูลและไฟล์เสียงเก็บอยู่ในมือถือเครื่องนี้เท่านั้น ผลประเมินเป็นการให้คะแนนตามแนวทางทั่วไป ใช้ช่วยตัดสินใจ ไม่ใช่การวินิจฉัย ถ้ามีสัญญาณอันตรายให้พบแพทย์ก่อนเสมอ</p>
   </section>
+
+  <!-- PROFILE -->
+  <section id="pane-baby" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div class="card">
+      <h2>เลือกน้อง</h2>
+      <div class="chips" id="baby-list"></div>
+      <p class="hint">แต่ละคนมีประวัติการร้องและการกินแยกกัน ใช้มือถือเครื่องเดียวบันทึกได้หลายคน</p>
+    </div>
+    <div class="card" id="baby-form">
+      <div class="row" style="justify-content:space-between"><h2 id="bf-title">ข้อมูลน้อง</h2><button class="btn ghost" id="bf-new" type="button">+ เพิ่มน้องอีกคน</button></div>
+      <div class="formgrid">
+        <div class="field"><label for="bf-nick">ชื่อเล่น *</label><input id="bf-nick" type="text" maxlength="40"></div>
+        <div class="field"><label for="bf-full">ชื่อจริง</label><input id="bf-full" type="text" maxlength="80"></div>
+        <div class="field"><label for="bf-birth">วันเกิด *</label><input id="bf-birth" type="date"></div>
+        <div class="field"><label for="bf-sex">เพศ</label><select id="bf-sex"><option value="">ไม่ระบุ</option><option value="m">ชาย</option><option value="f">หญิง</option></select></div>
+        <div class="field"><label for="bf-bw">น้ำหนักแรกคลอด (kg)</label><input id="bf-bw" type="number" step="0.01" min="0.5" max="7" inputmode="decimal"></div>
+        <div class="field"><label for="bf-bl">ความยาวแรกคลอด (cm)</label><input id="bf-bl" type="number" step="0.1" min="25" max="70" inputmode="decimal"></div>
+        <div class="field"><label for="bf-feedplan">นมหลักที่กิน</label><select id="bf-feedplan"><option value="">ไม่ระบุ</option><option value="breast">นมแม่</option><option value="formula">นมผง</option><option value="mixed">นมแม่ + นมผง</option></select></div>
+        <div class="field"><label for="bf-doctor">โรงพยาบาล / กุมารแพทย์</label><input id="bf-doctor" type="text" maxlength="80"></div>
+      </div>
+      <div class="field"><label for="bf-note">บันทึกอื่นๆ</label><textarea id="bf-note" maxlength="500" placeholder="เช่น นัดฉีดวัคซีน ข้อควรระวัง"></textarea></div>
+      <div class="row"><button class="btn" id="bf-save" type="button">บันทึกข้อมูล</button><button class="btn ghost" id="bf-del" type="button">ลบน้องคนนี้</button><span class="status" id="bf-st"></span></div>
+    </div>
+    <div class="card" id="growth-card">
+      <h2>น้ำหนักและความยาว</h2>
+      <div class="formgrid">
+        <div class="field"><label for="gw-date">วันที่ชั่ง</label><input id="gw-date" type="date"></div>
+        <div class="field"><label for="gw-kg">น้ำหนัก (kg)</label><input id="gw-kg" type="number" step="0.01" min="0.5" max="20" inputmode="decimal"></div>
+        <div class="field"><label for="gw-cm">ความยาว (cm)</label><input id="gw-cm" type="number" step="0.1" min="25" max="110" inputmode="decimal"></div>
+      </div>
+      <div class="row"><button class="btn" id="gw-add" type="button">เพิ่มบันทึก</button><span class="status" id="gw-st"></span></div>
+      <div id="gw-list"></div>
+    </div>
+  </section>
 </div>
 
 <nav class="bottom" role="tablist">
   <button id="tab-now" role="tab" aria-selected="true">ตอนนี้</button>
   <button id="tab-hist" role="tab" aria-selected="false">ประวัติ</button>
+  <button id="tab-baby" role="tab" aria-selected="false">ข้อมูลน้อง</button>
 </nav>
 
 <div class="sheet-bg" id="feed-sheet" hidden>
   <div class="sheet" role="dialog" aria-label="บันทึกการกิน">
     <h2>บันทึกการกิน</h2>
-    <div class="grp"><span class="gt">กินอะไร</span><div class="chips" id="f-type"></div></div>
-    <div class="grp" id="f-ml-wrap" hidden><span class="gt">ปริมาณ</span>
-      <div class="stepper"><button type="button" id="ml-dn" aria-label="ลด">−</button><span class="v" id="ml-v">60 ml</span><button type="button" id="ml-up" aria-label="เพิ่ม">+</button><span class="hint" id="ml-oz"></span></div></div>
-    <div class="grp"><span class="gt">เริ่มกินเมื่อ</span><div class="chips" id="f-when"></div></div>
+    <div class="grp"><span class="gt">ให้นมแบบไหน</span><div class="chips" id="f-method"></div></div>
+    <div class="grp" id="f-side-wrap"><span class="gt">ข้างไหน</span><div class="chips" id="f-side"></div></div>
+    <div class="grp" id="f-milk-wrap"><span class="gt">ชนิดนม</span><div class="chips" id="f-milk"></div></div>
+    <div class="grp" id="f-ml-wrap"><span class="gt" id="f-ml-label">ปริมาณที่กิน</span>
+      <div class="stepper"><button type="button" id="ml-dn" aria-label="ลด 10 ml">−</button><span class="v" id="ml-v">60 ml</span><button type="button" id="ml-up" aria-label="เพิ่ม 10 ml">+</button><span class="hint" id="ml-oz"></span></div>
+      <div class="chips" id="f-ml-preset"></div></div>
+    <div class="grp" id="f-min-wrap"><span class="gt">ดูดนานกี่นาที</span>
+      <div class="stepper"><button type="button" id="mn-dn" aria-label="ลด 5 นาที">−</button><span class="v" id="mn-v">15 นาที</span><button type="button" id="mn-up" aria-label="เพิ่ม 5 นาที">+</button></div></div>
+    <div class="grp"><span class="gt">เริ่มกินเมื่อ</span><div class="chips" id="f-when"></div>
+      <input type="datetime-local" id="f-at" aria-label="วันเวลาที่เริ่มกิน"></div>
     <div class="row"><button class="btn" id="f-save">บันทึก</button><button class="btn ghost" id="f-cancel">ยกเลิก</button></div>
   </div>
 </div>
@@ -176,14 +235,19 @@ nav.bottom button[aria-selected="true"]{background:var(--soft);color:var(--ink)}
 'use strict';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const BIRTH=new Date(2026,8,8).getTime(); // 8 ก.ย. 2026
+const DEFAULT_BABY={id:'victor',nick:'วิคเตอร์',full:'',birth:'2026-09-08',sex:'m',bw:3.22,bl:50,feedPlan:'breast',doctor:'',note:'',growth:[{date:'2026-10-02',kg:3.85,cm:null}]};
+let babies=[],baby=null; // active baby profile
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 const EPISODE_JOIN_MIN=45; // อัดใหม่ภายใน 45 นาทีหลังเริ่มเหตุการณ์ที่ยังไม่ปิด = ต่อเหตุการณ์เดิม
 const MAX_REC_SEC=60;
 const SEED=[{"id": "seed1207", "ts": 1791090420000, "symptoms": ["restless", "arch", "hiccup"], "state": "afterFeed", "diaper": null, "note": "หลังกินนมขวด 3 oz (~90 ml) หมด จับเรอแล้วยังไม่สบายตัว ชันคอสู้ พาดบ่าตบหลังยังร้อง 12:42 ยังไม่หลับ สะอึกแทรก", "resolution": null, "clips": [{"dur": 64.34, "cryPct": 33, "bouts": 17, "boutMed": 0.7, "boutMax": 6.35, "pauseMed": 1.12, "f0Med": 471, "f0P90": 1231, "highPct": 31, "trend": "flat", "env": [0.79, 0.29, 0.63, 0.65, 0.5, 0.49, 0.51, 0.64, 0.54, 0.63, 0.85, 0.39, 0.47, 0.58, 0.54, 0.7, 0.61, 0.29, 0.34, 0.23, 0.46, 0.38, 0.5, 0.23, 0.47, 0.39, 1.0, 0.21, 0.36, 0.82, 0.58, 0.54, 0.11, 0.15, 0.58, 0.2, 0.15, 0.22, 0.17, 0.39, 0.34, 0.51, 0.82, 0.7, 0.66, 0.57, 0.65, 0.88, 0.55, 0.97, 0.47, 0.34, 0.18, 0.15, 0.23, 0.33, 0.79, 0.26, 0.34, 0.18], "at": 1791090453000}, {"dur": 23.0, "cryPct": 78, "bouts": 11, "boutMed": 1.1, "boutMax": 5.8, "pauseMed": 0.4, "f0Med": 364, "f0P90": 485, "highPct": 5, "trend": "flat", "env": [0.34, 0.05, 0.55, 0.49, 0.59, 0.58, 0.74, 0.56, 0.5, 0.82, 0.85, 0.96, 1.0, 0.96, 0.58, 0.48, 0.59, 0.78, 0.75, 0.8, 0.64, 0.81, 0.55, 0.81, 0.59, 0.6, 0.67, 0.91, 0.87, 0.84, 0.64, 0.81, 0.82, 0.75, 0.64, 0.65, 0.53, 0.44, 0.27, 0.67, 0.7, 0.48, 0.65, 0.43, 0.65, 0.96, 0.93, 0.59, 0.86, 0.87, 0.57, 0.63, 0.59, 0.48, 0.56, 0.62, 0.59, 0.67, 0.88, 0.8], "at": 1791090953000}, {"dur": 83.26, "cryPct": 18, "bouts": 23, "boutMed": 0.5, "boutMax": 1.95, "pauseMed": 1.35, "f0Med": null, "f0P90": null, "highPct": null, "trend": "flat", "env": [0.8, 0.65, 0.58, 0.38, 0.53, 0.88, 0.64, 0.83, 0.25, 1.0, 0.78, 0.65, 0.47, 0.54, 0.54, 0.51, 0.58, 0.48, 0.53, 0.48, 0.46, 0.22, 0.41, 0.34, 0.43, 0.1, 0.35, 0.3, 0.72, 0.6, 0.13, 0.28, 0.46, 0.83, 0.5, 0.13, 0.62, 0.49, 0.35, 0.31, 0.24, 0.34, 0.72, 0.34, 0.41, 0.69, 0.55, 0.71, 0.2, 0.15, 0.4, 0.46, 0.5, 0.77, 0.22, 0.75, 0.44, 0.59, 0.56, 0.71], "at": 1791092537000}]}, {"id": "seed1145", "ts": 1791089100000, "symptoms": ["rooting", "restless", "arms", "legsRelaxed"], "state": "woke", "diaper": null, "note": "ตื่นนอนแล้วร้อง", "resolution": null, "closedAt": 1791090000000, "clips": [{"dur": 87.06, "cryPct": 25, "bouts": 34, "boutMed": 0.45, "boutMax": 2.35, "pauseMed": 0.8, "f0Med": 381, "f0P90": 1231, "highPct": 14, "trend": "flat", "env": [0.51, 0.51, 0.6, 0.26, 0.6, 0.41, 0.55, 0.59, 0.57, 1.0, 0.73, 0.55, 0.5, 0.34, 0.48, 0.88, 0.82, 0.66, 0.8, 0.87, 0.84, 0.62, 0.67, 0.72, 0.68, 0.87, 0.69, 0.83, 0.69, 0.8, 0.67, 0.84, 0.8, 0.51, 0.3, 0.06, 0.64, 0.77, 0.51, 0.25, 0.1, 0.21, 0.63, 0.59, 0.54, 0.79, 0.98, 0.74, 0.93, 0.72, 0.37, 0.87, 0.36, 0.74, 0.86, 0.65, 0.67, 0.68, 0.65, 0.81], "at": 1791089332000}, {"dur": 30.42, "cryPct": 33, "bouts": 11, "boutMed": 0.6, "boutMax": 3.45, "pauseMed": 0.6, "f0Med": 390, "f0P90": 530, "highPct": 8, "trend": "flat", "env": [0.58, 0.68, 0.89, 0.74, 0.93, 0.96, 0.81, 0.71, 0.85, 0.44, 0.83, 0.9, 0.77, 0.9, 0.78, 0.67, 0.75, 0.93, 0.95, 1.0, 0.9, 0.69, 0.47, 0.12, 0.08, 0.61, 0.54, 0.7, 0.67, 0.36, 0.74, 0.92, 0.79, 0.77, 0.75, 0.26, 0.34, 0.9, 0.68, 0.12, 0.26, 0.31, 0.45, 0.47, 0.3, 0.49, 0.49, 0.52, 0.29, 0.41, 0.16, 0.12, 0.37, 0.05, 0.26, 0.46, 0.46, 0.08, 0.47, 0.69], "at": 1791089449000}]}];
 
 /* ---------------- IndexedDB ---------------- */
 let idb;
-function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open('victor-cry',1);r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('entries',{keyPath:'id'});d.createObjectStore('feeds',{keyPath:'id'});d.createObjectStore('audio');};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open('victor-cry',2);r.onupgradeneeded=()=>{const d=r.result;const has=n=>d.objectStoreNames.contains(n);
+  if(!has('entries'))d.createObjectStore('entries',{keyPath:'id'});if(!has('feeds'))d.createObjectStore('feeds',{keyPath:'id'});if(!has('audio'))d.createObjectStore('audio');if(!has('babies'))d.createObjectStore('babies',{keyPath:'id'});};
+  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
 function tx(store,mode,fn){return new Promise((res,rej)=>{const t=idb.transaction(store,mode);const s=t.objectStore(store);const out=fn(s);t.oncomplete=()=>res(out&&out.result!==undefined?out.result:out);t.onerror=()=>rej(t.error);});}
 const put=(st,v,k)=>tx(st,'readwrite',s=>k===undefined?s.put(v):s.put(v,k));
 const del=(st,k)=>tx(st,'readwrite',s=>s.delete(k));
@@ -192,7 +256,25 @@ const getOne=(st,k)=>new Promise((res,rej)=>{const r=idb.transaction(st).objectS
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
 let entries=[],feeds=[];
-async function load(){entries=(await getAll('entries')).sort((a,b)=>b.ts-a.ts);feeds=(await getAll('feeds')).sort((a,b)=>b.ts-a.ts);}
+// old feed records used a single `type`; convert to method/side/milk
+function normFeed(f){if(f.method)return f;const t=f.type||'';const o=Object.assign({},f);
+  if(t==='breastL'){o.method='breast';o.side='L';o.milk='breast';}else if(t==='breastR'){o.method='breast';o.side='R';o.milk='breast';}
+  else if(t==='bottleF'){o.method='bottle';o.milk='formula';}else{o.method='bottle';o.milk='breast';}
+  delete o.type;return o;}
+async function load(){
+  const bid=baby?baby.id:'victor';
+  const allE=await getAll('entries'),allF=await getAll('feeds');
+  for(const e of allE)if(!e.babyId){e.babyId='victor';await put('entries',e);}
+  for(const f of allF)if(!f.babyId||!f.method){const n=normFeed(f);n.babyId=n.babyId||'victor';await put('feeds',n);Object.assign(f,n);delete f.type;}
+  entries=allE.filter(e=>e.babyId===bid).sort((a,b)=>b.ts-a.ts);
+  feeds=allF.filter(f=>f.babyId===bid).sort((a,b)=>b.ts-a.ts);
+}
+async function loadBabies(){
+  babies=await getAll('babies');
+  if(!babies.length){await put('babies',DEFAULT_BABY);babies=[DEFAULT_BABY];}
+  babies.sort((a,b)=>(a.created||0)-(b.created||0));
+  baby=babies.find(b=>b.id===lsGet('ba-active'))||babies[0];
+}
 
 /* ---------------- vocab ---------------- */
 const SYM=[
@@ -208,8 +290,10 @@ const STATES=[['woke','เพิ่งตื่นนอน'],['afterFeed','เ�
 const DIAPERS=[['changed','เปลี่ยนแล้ว / แห้ง'],['not','ยังไม่เปลี่ยน'],['unknown','ไม่แน่ใจ']];
 const METHODS=[['breast','เข้าเต้า'],['bottle','ป้อนขวด'],['diaper','เปลี่ยนผ้าอ้อม'],['burp','จับเรอ / ไล่ลม'],['hold','อุ้มกล่อม / ห่อตัว'],['skin','skin-to-skin'],['sleep','หลับไป'],['self','หยุดเอง']];
 const METHODLABEL=Object.fromEntries(METHODS);
-const FEEDTYPES=[['breastL','เต้าซ้าย'],['breastR','เต้าขวา'],['bottleBM','ขวด นมแม่'],['bottleF','ขวด นมผสม']];
-const FEEDLABEL=Object.fromEntries(FEEDTYPES);
+const FEED_METHODS=[['breast','เข้าเต้า'],['bottle','ป้อนขวด'],['cup','ป้อนแก้ว / ช้อน']];
+const FEED_SIDES=[['L','ซ้าย'],['R','ขวา'],['both','ทั้งสองข้าง']];
+const MILKS=[['breast','นมแม่'],['formula','นมผง'],['mixed','นมแม่ + นมผง']];
+const MILKLABEL=Object.fromEntries(MILKS),SIDELABEL=Object.fromEntries(FEED_SIDES);
 const CAUSE={
  hunger:{t:'หิว',col:'var(--c-hunger)',steps:['เข้าเต้าเลยตอนนี้ ไม่ต้องรอให้ร้องหนักขึ้น','ถ้าน้องหงุดหงิดกับเต้า ให้ปั่นจี๊ด 1–2 นาทีจนน้ำนมพุ่งก่อน แล้วค่อยเข้าเต้า','ถ้าร้องหนักจนอมเต้าไม่ได้ กล่อมให้สงบก่อน หรือป้อนนมปั๊ม 10–20 ml แล้วค่อยเปลี่ยนมาเต้า','ลองท่าเอนหลัง (laid-back) และบีบเต้าช่วยเมื่อเสียงกลืนเบาลง']},
  tired:{t:'ง่วง / เหนื่อย',col:'var(--c-tired)',steps:['ลดแสงและเสียงรอบตัว หยุดตบหลังหรือกระตุ้นเพิ่ม','ห่อตัวให้กระชับ อุ้มแนบอก โยกช้าๆ และทำเสียง “ชู่ว์” หรือเปิด white noise','ให้ดูดเต้าเพื่อปลอบสั้นๆ ได้','วางนอนหงายเมื่อหลับลึกแล้ว (แขนตก ปล่อยมือ) ราว 10–15 นาที']},
@@ -222,12 +306,21 @@ const CAUSE_ORDER=['hunger','tired','gas','comfort','soothe'];
 /* ---------------- helpers ---------------- */
 function fmtDur(min){if(min==null)return'–';if(min<1)return'ไม่ถึง 1 นาที';const h=Math.floor(min/60),m=Math.round(min%60);return(h?h+' ชม. ':'')+(m||!h?m+' นาที':'')}
 function hhmm(ms){const d=new Date(ms);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+function hhmmss(ms){return hhmm(ms)+':'+String(new Date(ms).getSeconds()).padStart(2,'0')}
+function fmtDate(ms){return new Date(ms).toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}
+function fmtDT(ms){return fmtDate(ms)+' '+hhmmss(ms)}
+function localInput(ms){const d=new Date(ms),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes())}
+function dateInput(ms){return localInput(ms).slice(0,10)}
 function dayLabel(ms){const d=new Date(ms),t=new Date();t.setHours(0,0,0,0);const dd=new Date(d);dd.setHours(0,0,0,0);const diff=(t-dd)/86400000;return diff===0?'วันนี้':diff===1?'เมื่อวาน':d.toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'})}
 function median(a){a=a.filter(v=>v!=null);if(!a.length)return null;const b=[...a].sort((p,q)=>p-q),h=b.length>>1;return b.length%2?b[h]:(b[h-1]+b[h])/2}
 function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,2600)}
 function feedBefore(ts){return feeds.find(f=>f.ts<=ts)||null}
 function lastFeedMs(e){if(e.lastFeedMs!=null)return e.lastFeedMs;const f=feedBefore(e.ts);return f?f.ts:null}
-function feedText(f){return FEEDLABEL[f.type]+(f.ml?' '+f.ml+' ml':'')}
+function feedText(f){
+  if(f.method==='breast')return 'เข้าเต้า'+(f.side?SIDELABEL[f.side]:'')+(f.minutes?' '+f.minutes+' นาที':'');
+  return (f.method==='cup'?'แก้ว/ช้อน ':'ขวด ')+(MILKLABEL[f.milk]||'')+(f.ml?' '+f.ml+' ml':'');
+}
+function isBottleLike(f){return f&&(f.method==='bottle'||f.method==='cup')}
 
 /* ---------------- audio analysis ---------------- */
 async function analyzeBuffer(arrayBuf){
@@ -272,7 +365,7 @@ const TREND={up:'ร้องถี่ขึ้น',down:'ร้องห่า�
 function envSvg(env){const w=300,h=36,bw=w/Math.max(1,env.length);return '<svg class="env" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" aria-hidden="true">'+env.map((v,i)=>{const bh=Math.max(1,v*(h-2));return '<rect x="'+(i*bw+.5).toFixed(1)+'" y="'+(h-bh).toFixed(1)+'" width="'+Math.max(.5,bw-1).toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="1" fill="var(--accent)" opacity="'+(.35+.65*v).toFixed(2)+'"/>'}).join('')+'</svg>'}
 function clipHtml(c,i,entryId){
   const p=clipPattern(c);
-  return '<div class="clip"><div class="top"><span><b>'+hhmm(c.at||0)+'</b> · '+esc(p.t)+'</span>'+(c.audioKey?'<button type="button" class="chip" data-play="'+esc(c.audioKey)+'">ฟัง</button>':'')+'</div>'+envSvg(c.env||[])+
+  return '<div class="clip"><div class="top"><span><b>'+fmtDT(c.at||0)+'</b><br>'+esc(p.t)+'</span>'+(c.audioKey?'<button type="button" class="chip" data-play="'+esc(c.audioKey)+'">ฟัง</button>':'')+'</div>'+envSvg(c.env||[])+
   '<div class="metrics"><div><span>ความยาว</span><b>'+c.dur+' วิ</b></div><div><span>เวลาที่ร้อง</span><b>'+c.cryPct+'%</b></div><div><span>ร้องต่อช่วง</span><b>'+(c.boutMed??'–')+' วิ</b></div><div><span>หยุดระหว่างร้อง</span><b>'+(c.pauseMed??'–')+' วิ</b></div><div><span>ระดับเสียง</span><b>'+(c.f0Med?c.f0Med+' Hz':'–')+'</b></div><div><span>เสียงแหลม >800Hz</span><b>'+(c.highPct!=null?c.highPct+'%':'–')+'</b></div></div></div>';
 }
 
@@ -284,7 +377,7 @@ function assess(e){
   if(s.has('suckHand'))add('hunger',3,'ดูดมือ');
   if(s.has('lipSmack'))add('hunger',2,'ขยับปาก');
   const lf=lastFeedMs(e);const mins=lf!=null?Math.round((e.ts-lf)/60000):null;let cluster=false;
-  const f=feedBefore(e.ts);const bigBottle=f&&/bottle/.test(f.type)&&f.ml>=85&&mins!=null&&mins<90;
+  const f=feedBefore(e.ts);const bigBottle=isBottleLike(f)&&f.ml>=85&&mins!=null&&mins<90;
   if(mins!=null){
     if(mins>=150)add('hunger',4,'กินล่าสุด '+fmtDur(mins)+'ก่อน');
     else if(mins>=105)add('hunger',3,'กินล่าสุด '+fmtDur(mins)+'ก่อน');
@@ -357,7 +450,7 @@ function renderEpisode(){
   if(!e){box.innerHTML='<div class="card"><h2>ยังไม่มีเหตุการณ์ที่เปิดอยู่</h2><p class="hint">ตอนน้องร้อง กดปุ่มอัดเสียงด้านบนได้เลย แอปจะอัด 60 วินาทีแล้ววิเคราะห์ให้อัตโนมัติ จากนั้นแตะอาการที่เห็นเพิ่ม ผลประเมินจะอัปเดตทันที</p></div>';return;}
   const a=assess(e);const lf=lastFeedMs(e);const f=feedBefore(e.ts);
   box.innerHTML=
-   '<div class="card"><div class="row" style="justify-content:space-between"><h2>เหตุการณ์ '+hhmm(e.ts)+'</h2><span class="status">'+(lf!=null?'หลังกิน '+fmtDur(Math.round((e.ts-lf)/60000))+(f?' ('+esc(feedText(f))+')':''):'ยังไม่มีบันทึกการกิน')+'</span></div>'+
+   '<div class="card"><div class="row" style="justify-content:space-between"><h2>เหตุการณ์ '+hhmm(e.ts)+'</h2><span class="hint" style="width:100%">'+fmtDT(e.ts)+'</span><span class="status">'+(lf!=null?'หลังกิน '+fmtDur(Math.round((e.ts-lf)/60000))+(f?' ('+esc(feedText(f))+')':''):'ยังไม่มีบันทึกการกิน')+'</span></div>'+
      '<div class="block" id="ep-clips" style="display:flex;flex-direction:column;gap:8px">'+(e.clips||[]).map((c,i)=>clipHtml(c,i,e.id)).join('')+'</div>'+
      (e.clips&&e.clips.length?'<p class="hint">อัดอีกครั้งภายใน '+EPISODE_JOIN_MIN+' นาที จะรวมเข้าเหตุการณ์นี้</p>':'')+
    '</div>'+
@@ -397,9 +490,11 @@ async function startRec(){
   const tick=()=>{an.getFloatTimeDomainData(buf);let s=0;for(const v of buf)s+=v*v;const db=20*Math.log10(Math.sqrt(s/buf.length)+1e-9);
     const lvl=Math.max(0,Math.min(1,(db+60)/50));btn.style.setProperty('--lvl',lvl.toFixed(2));frames++;if(db>-38)cryFrames++;
     const sec=(Date.now()-t0)/1000;$('#rec-sub').textContent=Math.floor(sec)+' / '+MAX_REC_SEC+' วิ';
-    $('#live').textContent='เสียงดังพอ '+Math.round(100*cryFrames/frames)+'% ของเวลา';
-    if(sec>=MAX_REC_SEC){stopRec();return;}raf=requestAnimationFrame(tick)};
-  rec={mr,stream,ac,wake,t0,stop:()=>cancelAnimationFrame(raf)};
+    $('#live').textContent='เริ่มอัด '+hhmmss(t0)+' · เสียงดังพอ '+Math.round(100*cryFrames/frames)+'%';
+    if(sec>=MAX_REC_SEC){stopRec();}};
+  // interval (not rAF) so the timer and the 60 s auto-stop keep running if the screen dims
+  raf=setInterval(tick,100);const autoStop=setTimeout(()=>stopRec(),MAX_REC_SEC*1000+300);
+  rec={mr,stream,ac,wake,t0,stop:()=>{clearInterval(raf);clearTimeout(autoStop);}};
   mr.onstop=async()=>{
     rec.stop();stream.getTracks().forEach(t=>t.stop());try{ac.close()}catch(e){}try{wake&&wake.release()}catch(e){}
     btn.classList.remove('on');btn.style.setProperty('--lvl',0);$('#rec-label').textContent='กำลังวิเคราะห์';$('#rec-sub').textContent='รอสักครู่';btn.disabled=true;
@@ -410,8 +505,8 @@ async function startRec(){
       const clip=Object.assign({at:t0,audioKey:key,mime:blob.type},feat);
       let e=openEpisode();
       if(e&&(t0-e.ts)<=EPISODE_JOIN_MIN*60000){e.clips=[...(e.clips||[]),clip];}
-      else{if(e){e.closedAt=e.closedAt||t0;await saveEntry(e);}e={id:uid(),ts:t0,symptoms:[],state:null,diaper:null,clips:[clip],note:'',resolution:null};}
-      await saveEntry(e);toast('บันทึกเสียงแล้ว แตะอาการที่เห็นเพิ่มได้เลย');
+      else{if(e){e.closedAt=e.closedAt||t0;await saveEntry(e);}e={id:uid(),babyId:baby.id,ts:t0,symptoms:[],state:null,diaper:null,clips:[clip],note:'',resolution:null};}
+      await saveEntry(e);toast('บันทึกเสียงแล้ว '+fmtDT(t0));
     }catch(err){toast('วิเคราะห์เสียงไม่สำเร็จ ลองอัดใหม่');}
     btn.disabled=false;$('#rec-label').textContent='อัดเสียงร้อง';$('#rec-sub').textContent='แตะเพื่อเริ่ม';$('#live').textContent='';rec=null;
     renderAll();showTab('now');window.scrollTo({top:0,behavior:'smooth'});
@@ -423,26 +518,45 @@ $('#rec').onclick=()=>{if(rec)stopRec();else startRec();};
 
 $('#q-new').onclick=async()=>{let e=openEpisode();if(e&&(Date.now()-e.ts)<=EPISODE_JOIN_MIN*60000){toast('มีเหตุการณ์ที่เปิดอยู่แล้ว แตะอาการด้านล่างได้เลย');document.getElementById('episode').scrollIntoView({behavior:'smooth'});return;}
   if(e){e.closedAt=Date.now();await saveEntry(e);}
-  e={id:uid(),ts:Date.now(),symptoms:[],state:null,diaper:null,clips:[],note:'',resolution:null};await saveEntry(e);renderAll();document.getElementById('episode').scrollIntoView({behavior:'smooth'});};
+  e={id:uid(),babyId:baby.id,ts:Date.now(),symptoms:[],state:null,diaper:null,clips:[],note:'',resolution:null};await saveEntry(e);renderAll();document.getElementById('episode').scrollIntoView({behavior:'smooth'});};
 
 /* ---------------- feeds ---------------- */
-let fsel={type:null,ml:60,ago:0};
+let fsel=null;
 function openFeedSheet(){
-  fsel={type:fsel.type||'breastL',ml:fsel.ml||60,ago:0};
-  const upd=()=>{$('#f-ml-wrap').hidden=!/bottle/.test(fsel.type);$('#ml-v').textContent=fsel.ml+' ml';$('#ml-oz').textContent='≈ '+(fsel.ml/30).toFixed(1)+' oz';};
-  chipGroup($('#f-type'),FEEDTYPES,k=>fsel.type===k,k=>{fsel.type=k;upd()});
-  chipGroup($('#f-when'),[['0','ตอนนี้'],['10','10 นาทีก่อน'],['20','20 นาทีก่อน'],['30','30 นาทีก่อน'],['60','1 ชม.ก่อน']],k=>String(fsel.ago)===k,k=>{fsel.ago=Number(k)});
-  $('#ml-dn').onclick=()=>{fsel.ml=Math.max(10,fsel.ml-10);upd()};$('#ml-up').onclick=()=>{fsel.ml=Math.min(240,fsel.ml+10);upd()};
+  const last=feeds[0];
+  const plan=baby&&baby.feedPlan;
+  fsel={method:last?last.method:(plan==='formula'?'bottle':'breast'),side:last&&last.side==='L'?'R':'L',milk:last&&last.milk?last.milk:(plan==='formula'?'formula':'breast'),
+        ml:last&&last.ml?last.ml:60,minutes:last&&last.minutes?last.minutes:15,at:Date.now()};
+  const upd=()=>{
+    const br=fsel.method==='breast';
+    $('#f-side-wrap').hidden=!br;$('#f-min-wrap').hidden=!br;$('#f-milk-wrap').hidden=br;$('#f-ml-wrap').hidden=br;
+    $('#ml-v').textContent=fsel.ml+' ml';$('#ml-oz').textContent='≈ '+(fsel.ml/29.57).toFixed(1)+' oz';$('#mn-v').textContent=fsel.minutes+' นาที';
+    $('#f-at').value=localInput(fsel.at);
+    [...$('#f-ml-preset').children].forEach(c=>c.setAttribute('aria-pressed',String(Number(c.dataset.k)===fsel.ml)));
+  };
+  chipGroup($('#f-method'),FEED_METHODS,k=>fsel.method===k,k=>{fsel.method=k;upd()});
+  chipGroup($('#f-side'),FEED_SIDES,k=>fsel.side===k,k=>{fsel.side=k});
+  chipGroup($('#f-milk'),MILKS,k=>fsel.milk===k,k=>{fsel.milk=k});
+  chipGroup($('#f-ml-preset'),[['30','30 ml (1 oz)'],['60','60 ml (2 oz)'],['90','90 ml (3 oz)'],['120','120 ml (4 oz)']],k=>fsel.ml===Number(k),k=>{fsel.ml=Number(k);upd()});
+  const when=[['0','ตอนนี้'],['10','10 นาทีก่อน'],['20','20 นาทีก่อน'],['30','30 นาทีก่อน'],['60','1 ชม.ก่อน']];let agoSel='0';
+  chipGroup($('#f-when'),when,k=>agoSel===k,k=>{agoSel=k;fsel.at=Date.now()-Number(k)*60000;upd()});
+  $('#f-at').onchange=ev=>{const v=new Date(ev.target.value).getTime();if(!isNaN(v)){fsel.at=v;agoSel='';[...$('#f-when').children].forEach(c=>c.setAttribute('aria-pressed','false'));}};
+  $('#ml-dn').onclick=()=>{fsel.ml=Math.max(5,fsel.ml-10);upd()};$('#ml-up').onclick=()=>{fsel.ml=Math.min(300,fsel.ml+10);upd()};
+  $('#mn-dn').onclick=()=>{fsel.minutes=Math.max(1,fsel.minutes-5);upd()};$('#mn-up').onclick=()=>{fsel.minutes=Math.min(90,fsel.minutes+5);upd()};
   upd();$('#feed-sheet').hidden=false;
 }
 $('#q-feed').onclick=openFeedSheet;
 $('#f-cancel').onclick=()=>$('#feed-sheet').hidden=true;
 $('#feed-sheet').addEventListener('click',ev=>{if(ev.target.id==='feed-sheet')$('#feed-sheet').hidden=true});
-$('#f-save').onclick=async()=>{const f={id:uid(),ts:Date.now()-fsel.ago*60000,type:fsel.type,ml:/bottle/.test(fsel.type)?fsel.ml:null};await put('feeds',f);feeds.unshift(f);feeds.sort((a,b)=>b.ts-a.ts);$('#feed-sheet').hidden=true;toast('บันทึกการกินแล้ว');renderAll();};
+$('#f-save').onclick=async()=>{
+  const br=fsel.method==='breast';
+  const f={id:uid(),babyId:baby.id,ts:fsel.at,loggedAt:Date.now(),method:fsel.method,side:br?fsel.side:null,milk:br?'breast':fsel.milk,ml:br?null:fsel.ml,minutes:br?fsel.minutes:null};
+  await put('feeds',f);feeds.unshift(f);feeds.sort((a,b)=>b.ts-a.ts);$('#feed-sheet').hidden=true;toast('บันทึกการกินแล้ว · '+feedText(f));renderAll();};
 
 /* ---------------- header ---------------- */
 function renderHeader(){
-  const days=Math.floor((Date.now()-BIRTH)/86400000);$('#age').textContent=days+' วัน ('+Math.floor(days/7)+' สัปดาห์ '+(days%7)+' วัน)';
+  $('#baby-name').textContent=baby?baby.nick:'–';
+  if(baby&&baby.birth){const b=new Date(baby.birth+'T00:00:00').getTime();const days=Math.floor((Date.now()-b)/86400000);$('#age').textContent=days<0?'ยังไม่เกิด':days+' วัน ('+Math.floor(days/7)+' สัปดาห์ '+(days%7)+' วัน)';}else $('#age').textContent='ยังไม่ได้ใส่วันเกิด';
   const f=feeds[0];$('#lastfeed').textContent=f?fmtDur(Math.round((Date.now()-f.ts)/60000))+'ก่อน · '+feedText(f):'ยังไม่มีบันทึก';
 }
 
@@ -451,9 +565,9 @@ function renderHistory(){
   const n=entries.length;const today=new Date();today.setHours(0,0,0,0);
   const as=entries.map(e=>({e,a:assess(e)}));
   const todayN=entries.filter(e=>e.ts>=today.getTime()).length;
-  const todayFeeds=feeds.filter(f=>f.ts>=today.getTime());const todayMl=todayFeeds.reduce((s,f)=>s+(f.ml||0),0);
+  const todayFeeds=feeds.filter(f=>f.ts>=today.getTime());const sumMl=m=>todayFeeds.filter(f=>isBottleLike(f)&&f.milk===m).reduce((s,f)=>s+(f.ml||0),0);const bmMl=sumMl('breast'),fmMl=sumMl('formula'),mxMl=sumMl('mixed'),brN=todayFeeds.filter(f=>f.method==='breast').length;
   const resolved=entries.filter(e=>e.resolution&&e.resolution.minutes!=null).map(e=>e.resolution.minutes);
-  $('#tiles').innerHTML=[['ร้องวันนี้',todayN+' ครั้ง'],['กินวันนี้',todayFeeds.length+' มื้อ'+(todayMl?' · ขวด '+todayMl+' ml':'')],['สงบภายใน (กลาง)',resolved.length?Math.round(median(resolved))+' นาที':'–'],['บันทึกทั้งหมด',n+' เหตุการณ์']]
+  $('#tiles').innerHTML=[['ร้องวันนี้',todayN+' ครั้ง'],['กินวันนี้',todayFeeds.length+' มื้อ'],['นมแม่จากขวดวันนี้',bmMl+' ml'+(brN?' · เข้าเต้า '+brN+' ครั้ง':'')],['นมผงวันนี้',(fmMl+mxMl)+' ml'],['สงบภายใน (กลาง)',resolved.length?Math.round(median(resolved))+' นาที':'–'],['บันทึกทั้งหมด',n+' เหตุการณ์']]
     .map(([k,v])=>'<div class="tile"><div class="k">'+k+'</div><div class="v">'+v+'</div></div>').join('');
   const cc={};as.forEach(x=>{const k=x.a.top||'unknown';cc[k]=(cc[k]||0)+1});const cmax=Math.max(1,...Object.values(cc));
   $('#cause-bars').innerHTML=n?[...CAUSE_ORDER,'unknown'].filter(k=>cc[k]).map(k=>'<div class="bar"><span>'+(k==='unknown'?'ยังไม่ชัด':CAUSE[k].t)+'</span><div class="tr"><div class="fl" style="width:'+Math.round(100*cc[k]/cmax)+'%;background:'+(k==='unknown'?'var(--muted)':CAUSE[k].col)+'"></div></div><span class="n">'+cc[k]+'</span></div>').join(''):'<p class="hint">ยังไม่มีบันทึก</p>';
@@ -490,26 +604,89 @@ function renderHistory(){
 /* ---------------- export ---------------- */
 $('#export').onclick=async()=>{
   const st=$('#export-st');
-  const data={app:'babies-ask',exportedAt:new Date().toISOString(),birth:'2026-09-08',
-    feeds:feeds.map(f=>({ts:new Date(f.ts).toISOString(),type:f.type,ml:f.ml})),
-    events:entries.map(e=>({id:e.id,ts:new Date(e.ts).toISOString(),symptoms:e.symptoms,state:e.state,diaper:e.diaper,note:e.note,resolution:e.resolution,closedAt:e.closedAt?new Date(e.closedAt).toISOString():null,
-      assessedTop:assess(e).top,clips:(e.clips||[]).map(c=>{const o=Object.assign({},c);delete o.audioKey;o.at=c.at?new Date(c.at).toISOString():null;return o;})}))};
-  const name='babies-ask-victor-'+new Date().toISOString().slice(0,10)+'.json';
+  const iso=ms=>ms?new Date(ms).toISOString():null;
+  const data={app:'babies-ask',version:2,exportedAt:new Date().toISOString(),
+    baby:{nick:baby.nick,full:baby.full,birth:baby.birth,sex:baby.sex,birthWeightKg:baby.bw,birthLengthCm:baby.bl,feedPlan:baby.feedPlan,growth:baby.growth||[],note:baby.note},
+    feeds:feeds.map(f=>({ts:iso(f.ts),method:f.method,side:f.side,milk:f.milk,ml:f.ml,minutes:f.minutes})),
+    events:entries.map(e=>({id:e.id,ts:iso(e.ts),symptoms:e.symptoms,state:e.state,diaper:e.diaper,note:e.note,resolution:e.resolution,closedAt:iso(e.closedAt),
+      assessedTop:assess(e).top,clips:(e.clips||[]).map(c=>{const o=Object.assign({},c);delete o.audioKey;o.at=iso(c.at);return o;})}))};
+  const slug=(baby.nick||'baby').replace(/[^\p{L}\p{N}]+/gu,'-');
+  const name='babies-ask-'+slug+'-'+dateInput(Date.now())+'.json';
   const file=new File([JSON.stringify(data,null,1)],name,{type:'application/json'});
-  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Babies ask · ข้อมูลวิคเตอร์'});st.className='status ok';st.textContent='แชร์แล้ว';return;}}catch(err){if(err&&err.name==='AbortError')return;}
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Babies ask · '+baby.nick});st.className='status ok';st.textContent='แชร์แล้ว';return;}}catch(err){if(err&&err.name==='AbortError')return;}
   const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);st.className='status ok';st.textContent='ดาวน์โหลด '+name+' แล้ว แนบไฟล์นี้ในแชท Claude ได้เลย';
 };
 
+/* ---------------- baby profiles ---------------- */
+let editing=null; // profile shown in the form
+function renderBabyPane(){
+  chipGroup($('#baby-list'),babies.map(b=>[b.id,b.nick||'ไม่มีชื่อ']),k=>baby&&baby.id===k,async k=>{await switchBaby(k);});
+  fillForm(editing||baby);
+}
+function fillForm(b){
+  editing=b;const isNew=!b.id;
+  $('#bf-title').textContent=isNew?'เพิ่มน้องคนใหม่':'ข้อมูล'+(b.nick?' '+b.nick:'น้อง');
+  $('#bf-nick').value=b.nick||'';$('#bf-full').value=b.full||'';$('#bf-birth').value=b.birth||'';$('#bf-sex').value=b.sex||'';
+  $('#bf-bw').value=b.bw??'';$('#bf-bl').value=b.bl??'';$('#bf-feedplan').value=b.feedPlan||'';$('#bf-doctor').value=b.doctor||'';$('#bf-note').value=b.note||'';
+  $('#bf-del').hidden=isNew||babies.length<2;$('#growth-card').hidden=isNew;$('#bf-st').textContent='';
+  const del=$('#bf-del');del.textContent='ลบน้องคนนี้';del.className='btn ghost';del.dataset.armed='';
+  $('#gw-date').value=dateInput(Date.now());$('#gw-kg').value='';$('#gw-cm').value='';$('#gw-st').textContent='';
+  renderGrowth(b);
+}
+function renderGrowth(b){
+  const g=[...(b.growth||[])].sort((x,y)=>y.date.localeCompare(x.date));
+  const birthRow=b.bw?[{date:b.birth,kg:b.bw,cm:b.bl,birth:true}]:[];
+  const rows=[...g,...birthRow];
+  if(!rows.length){$('#gw-list').innerHTML='<p class="hint">ยังไม่มีบันทึกน้ำหนัก</p>';return;}
+  $('#gw-list').innerHTML=rows.map((r,i)=>{
+    const prev=rows[i+1];let gain='';
+    if(prev&&r.kg&&prev.kg){const d=(new Date(r.date)-new Date(prev.date))/86400000;if(d>0)gain='+'+Math.round((r.kg-prev.kg)*1000/d)+' g/วัน';}
+    return '<div class="gwrow"><span>'+esc(new Date(r.date+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}))+(r.birth?' (แรกคลอด)':'')+'</span><span class="num">'+(r.kg?r.kg.toFixed(2)+' kg':'–')+'</span><span class="num">'+(r.cm?r.cm+' cm':'')+'</span><span class="hint">'+gain+(r.birth?'':' <button class="chip" type="button" data-gdel="'+esc(r.date)+'" style="padding:2px 10px;font-size:12px">ลบ</button>')+'</span></div>';
+  }).join('');
+  $('#gw-list').querySelectorAll('[data-gdel]').forEach(btn=>btn.onclick=async()=>{b.growth=(b.growth||[]).filter(x=>x.date!==btn.dataset.gdel);await put('babies',b);renderGrowth(b);});
+}
+const num=v=>v===''||v==null?null:Number(v);
+$('#bf-save').onclick=async()=>{
+  const st=$('#bf-st');const nick=$('#bf-nick').value.trim(),birth=$('#bf-birth').value;
+  if(!nick||!birth){st.className='status err';st.textContent='กรอกชื่อเล่นและวันเกิดก่อน';return;}
+  const b=Object.assign({},editing,{nick,full:$('#bf-full').value.trim(),birth,sex:$('#bf-sex').value,bw:num($('#bf-bw').value),bl:num($('#bf-bl').value),feedPlan:$('#bf-feedplan').value,doctor:$('#bf-doctor').value.trim(),note:$('#bf-note').value.trim()});
+  const isNew=!b.id;if(isNew){b.id='b_'+uid();b.created=Date.now();b.growth=[];}
+  await put('babies',b);babies=await getAll('babies');babies.sort((x,y)=>(x.created||0)-(y.created||0));
+  if(isNew){await switchBaby(b.id);toast('เพิ่ม '+b.nick+' แล้ว');}
+  else{if(baby.id===b.id)baby=b;editing=b;renderHeader();renderBabyPane();st.className='status ok';st.textContent='บันทึกแล้ว';}
+};
+$('#bf-new').onclick=()=>{fillForm({});$('#bf-nick').focus();};
+$('#bf-del').onclick=async()=>{const btn=$('#bf-del');
+  if(!btn.dataset.armed){btn.dataset.armed='1';btn.textContent='แตะอีกครั้ง ข้อมูลการร้องและการกินของน้องคนนี้จะหายด้วย';btn.className='btn danger';return;}
+  const id=editing.id;
+  for(const e of (await getAll('entries')).filter(x=>x.babyId===id)){for(const c of e.clips||[])if(c.audioKey)await del('audio',c.audioKey);await del('entries',e.id);}
+  for(const f of (await getAll('feeds')).filter(x=>x.babyId===id))await del('feeds',f.id);
+  await del('babies',id);babies=babies.filter(b=>b.id!==id);await switchBaby(babies[0].id);toast('ลบแล้ว');};
+$('#gw-add').onclick=async()=>{const b=editing;const d=$('#gw-date').value,kg=num($('#gw-kg').value),cm=num($('#gw-cm').value);const st=$('#gw-st');
+  if(!d||(kg==null&&cm==null)){st.className='status err';st.textContent='ใส่วันที่และน้ำหนักหรือความยาว';return;}
+  b.growth=(b.growth||[]).filter(x=>x.date!==d).concat([{date:d,kg,cm}]);await put('babies',b);if(baby.id===b.id)baby=b;
+  st.className='status ok';st.textContent='เพิ่มแล้ว';$('#gw-kg').value='';$('#gw-cm').value='';renderGrowth(b);};
+async function switchBaby(id){baby=babies.find(b=>b.id===id)||babies[0];lsSet('ba-active',baby.id);editing=null;await load();renderAll();if(!$('#pane-baby').hidden)renderBabyPane();}
+$('#baby-name').onclick=()=>{renderBabyPane();showTab('baby');};
+
 /* ---------------- tabs / boot ---------------- */
-function showTab(t){const now=t==='now';$('#tab-now').setAttribute('aria-selected',String(now));$('#tab-hist').setAttribute('aria-selected',String(!now));$('#pane-now').style.display=now?'flex':'none';$('#pane-hist').hidden=now;}
-$('#tab-now').onclick=()=>showTab('now');$('#tab-hist').onclick=()=>{renderHistory();showTab('hist')};
+function showTab(t){
+  ['now','hist','baby'].forEach(k=>$('#tab-'+k).setAttribute('aria-selected',String(k===t)));
+  $('#pane-now').style.display=t==='now'?'flex':'none';$('#pane-hist').hidden=t!=='hist';$('#pane-baby').hidden=t!=='baby';
+  window.scrollTo({top:0});
+}
+$('#tab-now').onclick=()=>showTab('now');$('#tab-hist').onclick=()=>{renderHistory();showTab('hist')};$('#tab-baby').onclick=()=>{editing=null;renderBabyPane();showTab('baby')};
 function renderAll(){renderHeader();renderEpisode();if(!$('#pane-hist').hidden)renderHistory();}
+function tickClock(){const n=Date.now();$('#clock').innerHTML=hhmmss(n)+'<small>'+esc(fmtDate(n))+'</small>';}
+setInterval(tickClock,1000);tickClock();
 setInterval(renderHeader,60000);
 
 (async()=>{
   try{idb=await openDB();}catch(e){$('#episode').innerHTML='<div class="card"><p>เบราว์เซอร์นี้เก็บข้อมูลไม่ได้ ลองเปิดด้วย Chrome แบบปกติ (ไม่ใช่โหมดไม่ระบุตัวตน)</p></div>';return;}
+  await loadBabies();
+  if(!lsGet('ba-seeded')&&SEED.length&&!(await getAll('entries')).length){for(const e of SEED){await put('entries',Object.assign({babyId:'victor'},e));}}
+  lsSet('ba-seeded','1');
   await load();
-  if(!entries.length&&!feeds.length&&SEED.length){for(const e of SEED){await put('entries',e);}await load();}
   renderAll();
   if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
   if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
