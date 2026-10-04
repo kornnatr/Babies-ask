@@ -109,7 +109,7 @@ details>summary::-webkit-details-marker{display:none}
 .daylabel{font-size:13px;font-weight:600;color:var(--muted);margin-top:6px}
 
 nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);display:flex;padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px));gap:8px;justify-content:center}
-nav.bottom button{flex:1;max-width:284px;font:inherit;font-weight:500;padding:10px;border-radius:12px;border:none;background:transparent;color:var(--muted);cursor:pointer}
+nav.bottom button{flex:1;max-width:200px;font-size:14px;padding-inline:4px;font:inherit;font-weight:500;padding:10px;border-radius:12px;border:none;background:transparent;color:var(--muted);cursor:pointer}
 nav.bottom button[aria-selected="true"]{background:var(--soft);color:var(--ink)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:30;max-width:calc(100% - 32px)}
 .foot{font-size:12px;color:var(--muted)}
@@ -124,6 +124,9 @@ header button.name::after{content:" ▾";font-size:14px;color:var(--muted)}
 .field label{font-size:13px;color:var(--muted)}
 input[type=text],input[type=date],select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%}
 .gwrow{display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;font-size:14px;padding:6px 0;border-top:1px solid var(--line)}
+.importlink{font-size:13px;color:var(--accent);text-decoration:underline;cursor:pointer}
+.learnbox{background:var(--soft);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.corr{width:100%;border-collapse:collapse;font-size:13px}.corr th,.corr td{text-align:left;padding:6px 4px;border-top:1px solid var(--line);vertical-align:top}.corr .pill{white-space:nowrap;font-size:11px}.corr th{color:var(--muted);font-weight:600;font-size:12px}.corr td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 .gwrow .num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
 @media (prefers-reduced-motion:reduce){.recbtn{transition:none}}
 </style>
@@ -147,6 +150,8 @@ input[type=text],input[type=date],select{font:inherit;color:var(--ink);backgroun
       <div class="clock" id="clock" aria-live="off">–</div>
       <button class="recbtn" id="rec"><span id="rec-label">อัดเสียงร้อง</span><small id="rec-sub">แตะเพื่อเริ่ม</small></button>
       <div class="live" id="live"></div>
+      <label class="importlink" for="audio-file">หรือนำเข้าไฟล์เสียงที่อัดไว้</label>
+      <input type="file" id="audio-file" accept="audio/*" multiple hidden>
     </div>
     <div class="quick">
       <button class="qbtn" id="q-feed">บันทึกการกิน</button>
@@ -169,6 +174,16 @@ input[type=text],input[type=date],select{font:inherit;color:var(--ink);backgroun
     <h2>ไทม์ไลน์</h2>
     <div class="tl" id="timeline"></div>
     <p class="foot">ข้อมูลและไฟล์เสียงเก็บอยู่ในมือถือเครื่องนี้เท่านั้น ผลประเมินเป็นการให้คะแนนตามแนวทางทั่วไป ใช้ช่วยตัดสินใจ ไม่ใช่การวินิจฉัย ถ้ามีสัญญาณอันตรายให้พบแพทย์ก่อนเสมอ</p>
+  </section>
+
+  <!-- INSIGHTS -->
+  <section id="pane-ins" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div class="card"><h2>วิเคราะห์ข้อมูล</h2><p class="hint" id="ins-intro"></p><div class="tiles" id="ins-tiles"></div></div>
+    <div class="card"><h3>วิธีที่ทำให้สงบ</h3><div id="ins-methods"></div></div>
+    <div class="card"><h3>ความสัมพันธ์ที่พบ (อาการ/บริบท → สาเหตุจริง)</h3><div id="ins-corr"></div></div>
+    <div class="card"><h3>รูปแบบเสียงแยกตามสาเหตุจริง</h3><div id="ins-audio"></div></div>
+    <div class="card"><h3>เวลาจนสงบ รายสัปดาห์</h3><div id="ins-weeks"></div></div>
+    <p class="foot">“สาเหตุจริง” อนุมานจากวิธีที่ทำให้น้องสงบ เช่น สงบเมื่อเข้าเต้า = หิว ความสัมพันธ์ที่แสดงเป็นสถิติจากข้อมูลของน้องคนนี้เท่านั้น ไม่ได้พิสูจน์ว่าเป็นเหตุและผล และยิ่งข้อมูลมากยิ่งเชื่อถือได้</p>
   </section>
 
   <!-- PROFILE -->
@@ -209,6 +224,7 @@ input[type=text],input[type=date],select{font:inherit;color:var(--ink);backgroun
 <nav class="bottom" role="tablist">
   <button id="tab-now" role="tab" aria-selected="true">ตอนนี้</button>
   <button id="tab-hist" role="tab" aria-selected="false">ประวัติ</button>
+  <button id="tab-ins" role="tab" aria-selected="false">วิเคราะห์</button>
   <button id="tab-baby" role="tab" aria-selected="false">ข้อมูลน้อง</button>
 </nav>
 
@@ -370,7 +386,7 @@ function clipHtml(c,i,entryId){
 }
 
 /* ---------------- scoring ---------------- */
-function assess(e){
+function assess(e,opts){
   const s=new Set(e.symptoms||[]),sc={hunger:0,tired:0,gas:0,comfort:0,soothe:0},why={hunger:[],tired:[],gas:[],comfort:[],soothe:[]};
   const add=(k,n,r)=>{sc[k]+=n;if(r&&n>0&&!why[k].includes(r))why[k].push(r)};
   if(s.has('rooting'))add('hunger',3,'อ้าปาก หันหาเต้า');
@@ -410,28 +426,87 @@ function assess(e){
   if(clips.length>1){const span=Math.round(((clips[clips.length-1].at||e.ts)-(clips[0].at||e.ts))/60000);if(span>=25)add('tired',2,'ร้องเป็นช่วงๆ มา '+span+' นาที เริ่มง่วงเกิน');}
   let audioWarn=false;
   clips.forEach(c=>{const p=clipPattern(c);if(p.k==='rhythmic')add('hunger',1,'เสียงร้องเป็นจังหวะ');if(p.k==='continuous'){add('gas',1,'เสียงร้องต่อเนื่อง');add('soothe',1,'เสียงร้องต่อเนื่อง');if((c.highPct||0)>30)audioWarn=true;}if(p.k==='settling')add('tired',1,'ร้องห่างลง');});
-  const ranked=CAUSE_ORDER.map(k=>[k,sc[k]]).sort((a,b)=>b[1]-a[1]);
   const red=[...s].filter(k=>REDSET.has(k));
-  const top=ranked[0][1]>=2?ranked[0][0]:null;
+  // rule scores -> probabilities
+  const mxs=Math.max(...CAUSE_ORDER.map(k=>sc[k]));const ex=CAUSE_ORDER.map(k=>Math.exp((sc[k]-mxs)/2.5));const se=ex.reduce((x,y)=>x+y,0);
+  const pRule={};CAUSE_ORDER.forEach((k,i)=>pRule[k]=ex[i]/se);
+  const ruleTop=mxs>=2?CAUSE_ORDER.slice().sort((x,y)=>sc[y]-sc[x])[0]:null;
+  // learned layer from this baby's own resolved events
+  const L=opts&&opts.noLearn?{ready:false,n:0}:learn(e,opts&&opts.beforeTs);
+  const w=L.ready?L.w:0;
+  const p={};CAUSE_ORDER.forEach(k=>p[k]=(1-w)*pRule[k]+w*(L.cause?L.cause[k]:0));
+  const ranked=CAUSE_ORDER.map(k=>[k,p[k]]).sort((x,y)=>y[1]-x[1]);
+  const top=(mxs>=2||w>=0.2)?ranked[0][0]:null;
   const gap=ranked[0][1]-ranked[1][1];
-  const conf=!top?'low':(gap>=3?'high':(gap>=1?'mid':'low'));
-  return{sc,why,ranked,top,conf,red,cluster,audioWarn,mins};
+  const conf=!top?'low':(gap>=0.25?'high':(gap>=0.1?'mid':'low'));
+  return{sc,why,ranked,top,conf,red,cluster,audioWarn,mins,ruleTop,L,w};
+}
+
+/* ---------------- learning from this baby's own data ----------------
+   Label = the method that finally calmed the baby (mapped to a cause).
+   Features = symptoms, context, feed gap, time of day, audio pattern.
+   Model = similarity-weighted nearest neighbours, blended with the rule
+   scores; the blend weight grows with the number of resolved events. */
+const METHOD_CAUSE={breast:'hunger',bottle:'hunger',burp:'gas',diaper:'comfort',sleep:'tired',hold:'soothe',skin:'soothe'};
+const MIN_LEARN=5;
+function gapBucket(m){if(m==null)return'unk';if(m<30)return'0-30';if(m<60)return'30-60';if(m<120)return'60-120';if(m<180)return'120-180';return'180+';}
+function hourBucket(ts){const h=new Date(ts).getHours();return h<6?'night':h<12?'morning':h<18?'afternoon':'evening';}
+const _fcache=new Map();
+function features(e){
+  const key=e.id+'|'+(e.symptoms||[]).join(',')+'|'+e.state+'|'+e.diaper+'|'+(e.clips||[]).length+'|'+feeds.length;
+  if(_fcache.has(key))return _fcache.get(key);
+  const F={};(e.symptoms||[]).forEach(k=>{if(!REDSET.has(k))F['sym:'+k]=1});
+  if(e.state)F['state:'+e.state]=1;if(e.diaper)F['diaper:'+e.diaper]=1;
+  const lf=lastFeedMs(e);const m=lf!=null?(e.ts-lf)/60000:null;F['gap:'+gapBucket(m)]=1;
+  const f=feedBefore(e.ts);
+  if(isBottleLike(f)&&f.ml>=85&&m!=null&&m<90)F['bigbottle']=1;
+  if(f&&f.method==='breast'&&m!=null&&m<90)F['afterbreast']=1;
+  F['hour:'+hourBucket(e.ts)]=1;
+  const clips=e.clips||[];
+  if(clips.length){const c=clips[0];F['a:'+clipPattern(c).k]=1;if((c.highPct||0)>25)F['a:high']=1;if((c.boutMax||0)>=5)F['a:longbout']=1;
+    if(clips.length>1&&((clips[clips.length-1].at||0)-(clips[0].at||0))/60000>=25)F['a:longepisode']=1;}
+  _fcache.set(key,F);return F;
+}
+function fw(k){return k.startsWith('sym:')?1:(k.startsWith('a:')||k.startsWith('gap:')||k==='bigbottle'||k==='afterbreast')?0.8:0.5}
+function sim(A,B){let inter=0,uni=0;for(const k of new Set([...Object.keys(A),...Object.keys(B)])){const w=fw(k);uni+=w;if(A[k]&&B[k])inter+=w;}return uni?inter/uni:0}
+function labelled(x){return x.resolution&&METHOD_CAUSE[x.resolution.method]}
+function learn(e,beforeTs){
+  const train=entries.filter(x=>x.id!==e.id&&labelled(x)&&(beforeTs==null||x.ts<beforeTs));const n=train.length;
+  if(n<MIN_LEARN)return{n,ready:false};
+  const fe=features(e);
+  const nb=train.map(x=>({x,s:sim(fe,features(x))})).filter(o=>o.s>=0.2).sort((a,b)=>b.s-a.s).slice(0,9);
+  const meth={};const M=m=>(meth[m]=meth[m]||{w:0,worked:0,failed:0,mins:[]});
+  nb.forEach(({x,s})=>{const m=x.resolution.method;const r=M(m);r.w+=s;r.worked++;if(x.resolution.minutes!=null)r.mins.push(x.resolution.minutes);
+    (x.tried||[]).forEach(t=>{if(t!==m&&METHOD_CAUSE[t]){const q=M(t);q.failed++;q.w-=s*0.5;}});});
+  const cause={hunger:0,tired:0,gas:0,comfort:0,soothe:0};let tot=0;
+  Object.entries(meth).forEach(([m,v])=>{if(v.w>0){cause[METHOD_CAUSE[m]]+=v.w;tot+=v.w;}});
+  if(tot>0)Object.keys(cause).forEach(k=>cause[k]/=tot);
+  const methods=Object.entries(meth).filter(([,v])=>v.worked>0).map(([m,v])=>({m,worked:v.worked,failed:v.failed,rate:v.worked/(v.worked+v.failed),mins:median(v.mins)}))
+    .sort((a,b)=>(b.rate*Math.log2(1+b.worked))-(a.rate*Math.log2(1+a.worked))||((a.mins??99)-(b.mins??99)));
+  const meanSim=nb.length?nb.reduce((t,o)=>t+o.s,0)/nb.length:0;
+  const w=tot>0?Math.min(0.85,(n/(n+12))*Math.min(1,meanSim*1.6)):0;
+  return{n,ready:true,neighbors:nb.length,cause,methods,w,meanSim};
 }
 const CONF={high:'ค่อนข้างชัด',mid:'พอเห็นแนวโน้ม',low:'ยังไม่ชัด'};
 function resultHtml(a){
   let h='';
   if(a.red.length)h+='<div class="alert"><strong>พบสัญญาณอันตราย: '+a.red.map(k=>esc(SYMLABEL[k])).join(', ')+'</strong><span>พาน้องไปพบแพทย์หรือห้องฉุกเฉินทันที ทารกอายุต่ำกว่า 3 เดือนที่มีไข้ ≥ 38°C ต้องพบแพทย์ทุกกรณี</span></div>';
   if(a.audioWarn)h+='<div class="alert"><strong>เสียงร้องยาวและแหลมสูงหลายช่วง</strong><span>ถ้าเสียงต่างจากที่เคยได้ยิน หรือปลอบอย่างไรก็ไม่หยุด ให้ปรึกษาแพทย์</span></div>';
-  const max=Math.max(4,...a.ranked.map(r=>r[1]));
   h+='<div class="row" style="justify-content:space-between"><h3>น่าจะเป็น</h3><span class="status">'+CONF[a.conf]+'</span></div>';
-  h+='<div class="bars">'+a.ranked.map(([k,v])=>'<div class="bar"><span>'+CAUSE[k].t+'</span><div class="tr"><div class="fl" style="width:'+Math.round(100*v/max)+'%;background:'+CAUSE[k].col+'"></div></div><span class="n">'+v+'</span></div>').join('')+'</div>';
+  h+='<div class="bars">'+a.ranked.map(([k,v])=>'<div class="bar"><span>'+CAUSE[k].t+'</span><div class="tr"><div class="fl" style="width:'+Math.round(100*v)+'%;background:'+CAUSE[k].col+'"></div></div><span class="n">'+Math.round(100*v)+'%</span></div>').join('')+'</div>';
+  const nick=esc(baby?baby.nick:'น้อง');
+  if(a.L&&a.L.ready)h+='<p class="hint">ใช้ข้อมูลของ'+nick+' '+Math.round(100*a.w)+'% · แนวทางทั่วไป '+Math.round(100*(1-a.w))+'% (เรียนรู้จาก '+a.L.n+' เหตุการณ์ที่รู้ว่าสงบด้วยวิธีไหน)</p>';
+  else if(a.L)h+='<p class="hint">ตอนนี้ใช้แนวทางทั่วไป แอปจะเริ่มเรียนรู้จากข้อมูลของ'+nick+'เมื่อมีเหตุการณ์ที่บันทึกวิธีที่ได้ผลครบ '+MIN_LEARN+' ครั้ง (มีแล้ว '+a.L.n+')</p>';
+  if(a.L&&a.L.ready&&a.L.methods.length){
+    h+='<div class="learnbox"><h3>ครั้งที่คล้ายกันของ'+nick+' ('+a.L.neighbors+' ครั้ง) วิธีที่ได้ผล</h3><ol class="steps">'+a.L.methods.slice(0,3).map(m=>'<li><b>'+esc(METHODLABEL[m.m])+'</b> ได้ผล '+m.worked+'/'+(m.worked+m.failed)+' ครั้ง'+(m.mins!=null?' · สงบในราว '+Math.round(m.mins)+' นาที':'')+'</li>').join('')+'</ol></div>';
+  }
   if(!a.top)return h+'<p class="hint">แตะอาการที่เห็นเพิ่ม หรือบันทึกการกิน เพื่อให้ประเมินได้ชัดขึ้น</p>';
   const c=CAUSE[a.top];
   h+='<div><span class="pill" style="background:'+c.col+'">'+c.t+'</span></div>';
   if(a.why[a.top].length)h+='<ul class="why">'+a.why[a.top].map(r=>'<li>'+esc(r)+'</li>').join('')+'</ul>';
   h+='<h3>ลองทำตามลำดับ</h3><ol class="steps">'+c.steps.map(s=>'<li>'+esc(s)+'</li>').join('')+'</ol>';
   if(a.cluster)h+='<p class="hint">เพิ่งกินไม่ถึงชั่วโมงแต่ยังมีสัญญาณหิว ช่วงอายุ 3–6 สัปดาห์มักเป็น cluster feeding ให้เข้าเต้าได้อีก</p>';
-  const second=a.ranked[1];if(second[1]>=2&&a.conf!=='high')h+='<p class="hint">ถ้ายังไม่หยุด ลองแนวทาง “'+CAUSE[second[0]].t+'” ต่อ</p>';
+  const second=a.ranked[1];if(second[1]>=0.2&&a.conf!=='high')h+='<p class="hint">ถ้ายังไม่หยุด ลองแนวทาง “'+CAUSE[second[0]].t+'” ต่อ</p>';
   return h;
 }
 
@@ -458,12 +533,14 @@ function renderEpisode(){
    '<div class="card"><h2>อาการที่เห็น</h2><div id="ep-sym" style="display:flex;flex-direction:column;gap:12px"></div></div>'+
    '<div class="card"><h2>บริบท</h2><div class="grp"><span class="gt">ก่อนร้อง น้องกำลัง</span><div class="chips" id="ep-state"></div></div><div class="grp"><span class="gt">ผ้าอ้อม</span><div class="chips" id="ep-diaper"></div></div>'+
      '<div class="grp"><span class="gt">บันทึกเพิ่ม</span><textarea id="ep-note" placeholder="เช่น ทะเลาะกับเต้า อึเขียว">'+esc(e.note||'')+'</textarea></div></div>'+
+   '<div class="card"><h2>ลองแล้ว แต่ยังไม่หยุด</h2><div class="chips" id="ep-tried"></div><p class="hint">แตะวิธีที่ลองแล้วไม่ได้ผล ข้อมูลนี้ช่วยให้แอปรู้ว่าวิธีไหนไม่เหมาะกับอาการแบบนี้</p></div>'+
    '<div class="card"><h2>น้องสงบแล้ว ด้วยวิธีไหน</h2><div class="chips" id="ep-method"></div><p class="hint">แตะวิธีที่ได้ผล แอปจะปิดเหตุการณ์และนับเวลาให้อัตโนมัติ</p><div class="row"><button class="btn ghost" id="ep-del" type="button">ลบเหตุการณ์นี้</button></div></div>';
   const symBox=$('#ep-sym');
   SYM.forEach(g=>{const d=document.createElement('div');d.className='grp'+(g.red?' red':'');d.innerHTML='<span class="gt">'+g.g+'</span><div class="chips'+(g.red?' red':'')+'"></div>';symBox.appendChild(d);
     chipGroup(d.querySelector('.chips'),g.items,k=>(e.symptoms||[]).includes(k),async k=>{const s=new Set(e.symptoms||[]);s.has(k)?s.delete(k):s.add(k);e.symptoms=[...s];await saveEntry(e);refreshResult(e);});});
   chipGroup($('#ep-state'),STATES,k=>e.state===k,async k=>{e.state=e.state===k?null:k;await saveEntry(e);refreshResult(e);});
   chipGroup($('#ep-diaper'),DIAPERS,k=>e.diaper===k,async k=>{e.diaper=e.diaper===k?null:k;await saveEntry(e);refreshResult(e);});
+  chipGroup($('#ep-tried'),METHODS.filter(m=>m[0]!=='self'),k=>(e.tried||[]).includes(k),async k=>{const t=new Set(e.tried||[]);t.has(k)?t.delete(k):t.add(k);e.tried=[...t];await saveEntry(e);});
   chipGroup($('#ep-method'),METHODS,()=>false,async k=>{e.resolution={method:k,minutes:Math.max(0,Math.round((Date.now()-e.ts)/60000))};e.closedAt=Date.now();await saveEntry(e);toast('ปิดเหตุการณ์แล้ว สงบใน '+fmtDur(e.resolution.minutes));renderAll();});
   let nt;$('#ep-note').addEventListener('input',ev=>{clearTimeout(nt);nt=setTimeout(async()=>{e.note=ev.target.value.trim();await saveEntry(e);},600)});
   const delBtn=$('#ep-del');let armed=false;delBtn.onclick=async()=>{if(!armed){armed=true;delBtn.textContent='แตะอีกครั้งเพื่อยืนยัน';delBtn.className='btn danger';return;}await deleteEntry(e);renderAll();};
@@ -499,20 +576,30 @@ async function startRec(){
     rec.stop();stream.getTracks().forEach(t=>t.stop());try{ac.close()}catch(e){}try{wake&&wake.release()}catch(e){}
     btn.classList.remove('on');btn.style.setProperty('--lvl',0);$('#rec-label').textContent='กำลังวิเคราะห์';$('#rec-sub').textContent='รอสักครู่';btn.disabled=true;
     const blob=new Blob(chunks,{type:mr.mimeType||mime||'audio/webm'});
-    try{
-      const feat=await analyzeBuffer(await blob.arrayBuffer());
-      const key='a_'+uid();await put('audio',blob,key);
-      const clip=Object.assign({at:t0,audioKey:key,mime:blob.type},feat);
-      let e=openEpisode();
-      if(e&&(t0-e.ts)<=EPISODE_JOIN_MIN*60000){e.clips=[...(e.clips||[]),clip];}
-      else{if(e){e.closedAt=e.closedAt||t0;await saveEntry(e);}e={id:uid(),babyId:baby.id,ts:t0,symptoms:[],state:null,diaper:null,clips:[clip],note:'',resolution:null};}
-      await saveEntry(e);toast('บันทึกเสียงแล้ว '+fmtDT(t0));
-    }catch(err){toast('วิเคราะห์เสียงไม่สำเร็จ ลองอัดใหม่');}
+    try{await ingestAudio(blob,t0);toast('บันทึกเสียงแล้ว '+fmtDT(t0));}catch(err){toast('วิเคราะห์เสียงไม่สำเร็จ ลองอัดใหม่');}
     btn.disabled=false;$('#rec-label').textContent='อัดเสียงร้อง';$('#rec-sub').textContent='แตะเพื่อเริ่ม';$('#live').textContent='';rec=null;
     renderAll();showTab('now');window.scrollTo({top:0,behavior:'smooth'});
   };
   mr.start(1000);
 }
+async function ingestAudio(blob,t0){
+  const feat=await analyzeBuffer(await blob.arrayBuffer());
+  const key='a_'+uid();await put('audio',blob,key);
+  const clip=Object.assign({at:t0,audioKey:key,mime:blob.type},feat);
+  let e=openEpisode();
+  if(e&&Math.abs(t0-e.ts)<=EPISODE_JOIN_MIN*60000){e.clips=[...(e.clips||[]),clip].sort((a,b)=>a.at-b.at);}
+  else{if(e&&t0>e.ts){e.closedAt=e.closedAt||t0;await saveEntry(e);}e={id:uid(),babyId:baby.id,ts:t0,symptoms:[],state:null,diaper:null,clips:[clip],note:'',resolution:null};if(t0<Date.now()-3*3600000)e.closedAt=t0;}
+  await saveEntry(e);
+}
+$('#audio-file').addEventListener('change',async ev=>{
+  const files=[...ev.target.files];ev.target.value='';if(!files.length)return;
+  for(const f of files){
+    // phone recorders stamp the file when recording ends; use that as the time
+    const t0=Math.max(0,(f.lastModified||Date.now()));
+    try{await ingestAudio(f,t0);toast('นำเข้า '+f.name+' · '+fmtDT(t0));}catch(err){toast('เปิดไฟล์ '+f.name+' ไม่ได้');}
+  }
+  renderAll();showTab('now');
+});
 function stopRec(){if(rec&&rec.mr.state!=='inactive')rec.mr.stop();}
 $('#rec').onclick=()=>{if(rec)stopRec();else startRec();};
 
@@ -608,7 +695,7 @@ $('#export').onclick=async()=>{
   const data={app:'babies-ask',version:2,exportedAt:new Date().toISOString(),
     baby:{nick:baby.nick,full:baby.full,birth:baby.birth,sex:baby.sex,birthWeightKg:baby.bw,birthLengthCm:baby.bl,feedPlan:baby.feedPlan,growth:baby.growth||[],note:baby.note},
     feeds:feeds.map(f=>({ts:iso(f.ts),method:f.method,side:f.side,milk:f.milk,ml:f.ml,minutes:f.minutes})),
-    events:entries.map(e=>({id:e.id,ts:iso(e.ts),symptoms:e.symptoms,state:e.state,diaper:e.diaper,note:e.note,resolution:e.resolution,closedAt:iso(e.closedAt),
+    events:entries.map(e=>({id:e.id,ts:iso(e.ts),tried:e.tried||[],features:Object.keys(features(e)),symptoms:e.symptoms,state:e.state,diaper:e.diaper,note:e.note,resolution:e.resolution,closedAt:iso(e.closedAt),
       assessedTop:assess(e).top,clips:(e.clips||[]).map(c=>{const o=Object.assign({},c);delete o.audioKey;o.at=iso(c.at);return o;})}))};
   const slug=(baby.nick||'baby').replace(/[^\p{L}\p{N}]+/gu,'-');
   const name='babies-ask-'+slug+'-'+dateInput(Date.now())+'.json';
@@ -616,6 +703,61 @@ $('#export').onclick=async()=>{
   try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Babies ask · '+baby.nick});st.className='status ok';st.textContent='แชร์แล้ว';return;}}catch(err){if(err&&err.name==='AbortError')return;}
   const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);st.className='status ok';st.textContent='ดาวน์โหลด '+name+' แล้ว แนบไฟล์นี้ในแชท Claude ได้เลย';
 };
+
+/* ---------------- insights ---------------- */
+const STATELABEL=Object.fromEntries(STATES),DIAPERLABEL=Object.fromEntries(DIAPERS);
+const GAPLABEL={'0-30':'กินไม่ถึง 30 นาที','30-60':'หลังกิน 30–60 นาที','60-120':'หลังกิน 1–2 ชม.','120-180':'หลังกิน 2–3 ชม.','180+':'หลังกินเกิน 3 ชม.','unk':'ไม่ทราบเวลากิน'};
+const HOURLABEL={night:'ช่วง 00–06 น.',morning:'ช่วง 06–12 น.',afternoon:'ช่วง 12–18 น.',evening:'ช่วง 18–24 น.'};
+const ALABEL={'a:light':'เสียง: งอแงเบาๆ','a:rhythmic':'เสียง: ร้องเป็นจังหวะ','a:continuous':'เสียง: ร้องต่อเนื่อง','a:settling':'เสียง: ร้องห่างลง','a:high':'เสียงแหลมสูงบ่อย','a:longbout':'ร้องยาวรวด ≥ 5 วิ','a:longepisode':'ร้องเป็นช่วงๆ ≥ 25 นาที'};
+function featLabel(k){const [t,v]=k.split(':');
+  if(t==='sym')return SYMLABEL[v]||v;if(t==='state')return STATELABEL[v]||v;if(t==='diaper')return 'ผ้าอ้อม: '+(DIAPERLABEL[v]||v);
+  if(t==='gap')return GAPLABEL[v];if(t==='hour')return HOURLABEL[v];if(k==='bigbottle')return 'ขวดล่าสุด ≥ 85 ml';if(k==='afterbreast')return 'หลังเข้าเต้าไม่ถึง 1.5 ชม.';return ALABEL[k]||k;}
+const pct=v=>Math.round(100*v)+'%';
+function renderInsights(){
+  const nick=esc(baby?baby.nick:'น้อง');
+  const lab=entries.filter(labelled).sort((a,b)=>a.ts-b.ts);const n=lab.length;
+  $('#ins-intro').textContent=n<3?'ยังมีข้อมูลน้อย ('+n+' เหตุการณ์ที่รู้ว่าสงบด้วยวิธีไหน) ทุกครั้งที่น้องร้อง ให้อัดเสียง แตะอาการ และแตะวิธีที่ทำให้สงบ แอปจะคำนวณความสัมพันธ์ให้เองเมื่อมีข้อมูลมากขึ้น':
+    'คำนวณจาก '+n+' เหตุการณ์ของ'+(baby?baby.nick:'น้อง')+'ที่รู้ว่าสงบด้วยวิธีไหน อัปเดตทุกครั้งที่บันทึก';
+  // online evaluation: predict each event using only earlier events
+  let ev=0,mOk=0,rOk=0;
+  lab.forEach(x=>{const a=assess(x,{beforeTs:x.ts});if(!(a.L&&a.L.ready))return;const truth=METHOD_CAUSE[x.resolution.method];ev++;if(a.top===truth)mOk++;if(a.ruleTop===truth)rOk++;});
+  const wk=7*86400000,now=Date.now();
+  const mins=(from,to)=>median(lab.filter(x=>x.ts>=from&&x.ts<to&&x.resolution.minutes!=null).map(x=>x.resolution.minutes));
+  const m1=mins(now-wk,now),m0=mins(now-2*wk,now-wk);
+  $('#ins-tiles').innerHTML=[
+    ['เหตุการณ์ที่ใช้เรียนรู้',n+' ครั้ง'],
+    ['ทายถูก (แนวทางทั่วไป)',ev?pct(rOk/ev)+' จาก '+ev:'รอข้อมูล'],
+    ['ทายถูก (โมเดลของ'+(baby?baby.nick:'น้อง')+')',ev?pct(mOk/ev)+' จาก '+ev:'รอข้อมูล'],
+    ['สงบภายใน 7 วันนี้',m1!=null?Math.round(m1)+' นาที'+(m0!=null?' (ก่อนหน้า '+Math.round(m0)+')':''):'–']
+  ].map(([k,v])=>'<div class="tile"><div class="k">'+esc(k)+'</div><div class="v">'+esc(v)+'</div></div>').join('');
+  // methods
+  const ms={};const MS=m=>(ms[m]=ms[m]||{worked:0,failed:0,mins:[]});
+  entries.forEach(x=>{if(x.resolution&&x.resolution.method){const r=MS(x.resolution.method);r.worked++;if(x.resolution.minutes!=null)r.mins.push(x.resolution.minutes);}
+    (x.tried||[]).forEach(t=>{if(!x.resolution||t!==x.resolution.method)MS(t).failed++;});});
+  const mrows=Object.entries(ms).sort((a,b)=>b[1].worked-a[1].worked);
+  $('#ins-methods').innerHTML=mrows.length?'<div style="overflow-x:auto"><table class="corr"><tr><th>วิธี</th><th>ได้ผล</th><th>ลองแล้วไม่ได้ผล</th><th>อัตราสำเร็จ</th><th>สงบใน (กลาง)</th></tr>'+
+    mrows.map(([m,v])=>'<tr><td>'+esc(METHODLABEL[m]||m)+'</td><td class="num">'+v.worked+'</td><td class="num">'+v.failed+'</td><td class="num">'+(v.worked+v.failed?pct(v.worked/(v.worked+v.failed)):'–')+'</td><td class="num">'+(median(v.mins)!=null?Math.round(median(v.mins))+' นาที':'–')+'</td></tr>').join('')+'</table></div>':'<p class="hint">ยังไม่มีข้อมูล</p>';
+  // correlations: lift of each feature for each true cause
+  if(n<3){$('#ins-corr').innerHTML='<p class="hint">ต้องมีอย่างน้อย 3 เหตุการณ์</p>';}
+  else{
+    const base={};lab.forEach(x=>{const c=METHOD_CAUSE[x.resolution.method];base[c]=(base[c]||0)+1;});
+    const fc={};lab.forEach(x=>{const c=METHOD_CAUSE[x.resolution.method];Object.keys(features(x)).forEach(k=>{(fc[k]=fc[k]||{n:0,c:{}});fc[k].n++;fc[k].c[c]=(fc[k].c[c]||0)+1;});});
+    const rows=[];Object.entries(fc).forEach(([k,v])=>{if(v.n<3)return;Object.entries(v.c).forEach(([c,cnt])=>{const p=cnt/v.n,lift=p/(base[c]/n);if(p>=0.5&&lift>=1.2)rows.push({k,c,cnt,nf:v.n,p,lift});});});
+    rows.sort((a,b)=>b.lift*Math.sqrt(b.nf)-a.lift*Math.sqrt(a.nf));
+    $('#ins-corr').innerHTML=rows.length?'<div style="overflow-x:auto"><table class="corr"><tr><th>เมื่อพบ</th><th>สาเหตุจริง</th><th>สัดส่วน</th><th>เทียบค่าเฉลี่ย</th></tr>'+
+      rows.slice(0,12).map(r=>'<tr><td>'+esc(featLabel(r.k))+'</td><td><span class="pill" style="background:'+CAUSE[r.c].col+'">'+CAUSE[r.c].t+'</span></td><td class="num">'+r.cnt+'/'+r.nf+'</td><td class="num">×'+r.lift.toFixed(1)+'</td></tr>').join('')+'</table></div><p class="hint">“เทียบค่าเฉลี่ย ×2.0” = เมื่อพบสิ่งนี้ สาเหตุนั้นเกิดบ่อยกว่าปกติ 2 เท่า แสดงเฉพาะที่พบอย่างน้อย 3 ครั้ง</p>':'<p class="hint">ยังไม่พบความสัมพันธ์ที่ชัดพอ (ต้องพบซ้ำอย่างน้อย 3 ครั้ง)</p>';
+  }
+  // audio by cause
+  const ac={};lab.forEach(x=>{const c=(x.clips||[])[0];if(!c)return;const k=METHOD_CAUSE[x.resolution.method];(ac[k]=ac[k]||[]).push(c);});
+  const ak=Object.keys(ac);
+  $('#ins-audio').innerHTML=ak.length?'<div style="overflow-x:auto"><table class="corr"><tr><th>สาเหตุจริง</th><th>n</th><th>เวลาที่ร้อง</th><th>ร้องต่อช่วง</th><th>ระดับเสียง</th><th>แหลม >800Hz</th></tr>'+
+    ak.map(k=>{const cs=ac[k],md=f=>median(cs.map(f).filter(v=>v!=null));const f0=md(c=>c.f0Med),hp=md(c=>c.highPct),bm=md(c=>c.boutMed);
+      return '<tr><td><span class="pill" style="background:'+CAUSE[k].col+'">'+CAUSE[k].t+'</span></td><td class="num">'+cs.length+'</td><td class="num">'+Math.round(md(c=>c.cryPct))+'%</td><td class="num">'+(bm!=null?bm.toFixed(1)+' วิ':'–')+'</td><td class="num">'+(f0!=null?Math.round(f0)+' Hz':'–')+'</td><td class="num">'+(hp!=null?Math.round(hp)+'%':'–')+'</td></tr>';}).join('')+'</table></div><p class="hint">ใช้คลิปแรกของแต่ละเหตุการณ์ ถ้าเสียงของแต่ละสาเหตุต่างกันชัด แอปจะใช้รูปแบบเสียงช่วยแยกได้ดีขึ้น</p>':'<p class="hint">ยังไม่มีเหตุการณ์ที่มีทั้งเสียงและวิธีที่ทำให้สงบ</p>';
+  // weekly time to calm
+  const weeks={};lab.forEach(x=>{if(x.resolution.minutes==null)return;const d=new Date(x.ts);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));const k=d.getTime();(weeks[k]=weeks[k]||[]).push(x.resolution.minutes);});
+  const wks=Object.keys(weeks).map(Number).sort((a,b)=>a-b).slice(-8);const wmx=Math.max(1,...wks.map(k=>median(weeks[k])));
+  $('#ins-weeks').innerHTML=wks.length?'<div class="bars">'+wks.map(k=>{const v=median(weeks[k]);return '<div class="bar"><span>สัปดาห์ '+new Date(k).toLocaleDateString('th-TH',{day:'numeric',month:'short'})+'</span><div class="tr"><div class="fl" style="width:'+Math.max(4,Math.round(100*v/wmx))+'%;background:var(--ok)"></div></div><span class="n">'+Math.round(v)+'</span></div>';}).join('')+'</div><p class="hint">ค่ากลางนาทีจนสงบ ยิ่งสั้นลงแปลว่าดูแลได้ตรงจุดขึ้น</p>':'<p class="hint">ยังไม่มีข้อมูลเวลาจนสงบ</p>';
+}
 
 /* ---------------- baby profiles ---------------- */
 let editing=null; // profile shown in the form
@@ -671,12 +813,12 @@ $('#baby-name').onclick=()=>{renderBabyPane();showTab('baby');};
 
 /* ---------------- tabs / boot ---------------- */
 function showTab(t){
-  ['now','hist','baby'].forEach(k=>$('#tab-'+k).setAttribute('aria-selected',String(k===t)));
-  $('#pane-now').style.display=t==='now'?'flex':'none';$('#pane-hist').hidden=t!=='hist';$('#pane-baby').hidden=t!=='baby';
+  ['now','hist','ins','baby'].forEach(k=>$('#tab-'+k).setAttribute('aria-selected',String(k===t)));
+  $('#pane-now').style.display=t==='now'?'flex':'none';$('#pane-hist').hidden=t!=='hist';$('#pane-ins').hidden=t!=='ins';$('#pane-baby').hidden=t!=='baby';
   window.scrollTo({top:0});
 }
-$('#tab-now').onclick=()=>showTab('now');$('#tab-hist').onclick=()=>{renderHistory();showTab('hist')};$('#tab-baby').onclick=()=>{editing=null;renderBabyPane();showTab('baby')};
-function renderAll(){renderHeader();renderEpisode();if(!$('#pane-hist').hidden)renderHistory();}
+$('#tab-now').onclick=()=>showTab('now');$('#tab-hist').onclick=()=>{renderHistory();showTab('hist')};$('#tab-ins').onclick=()=>{renderInsights();showTab('ins')};$('#tab-baby').onclick=()=>{editing=null;renderBabyPane();showTab('baby')};
+function renderAll(){renderHeader();renderEpisode();if(!$('#pane-hist').hidden)renderHistory();if(!$('#pane-ins').hidden)renderInsights();}
 function tickClock(){const n=Date.now();$('#clock').innerHTML=hhmmss(n)+'<small>'+esc(fmtDate(n))+'</small>';}
 setInterval(tickClock,1000);tickClock();
 setInterval(renderHeader,60000);
