@@ -125,6 +125,18 @@ header button.name::after{content:" ▾";font-size:14px;color:var(--muted)}
 input[type=text],input[type=date],select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%}
 .gwrow{display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;font-size:14px;padding:6px 0;border-top:1px solid var(--line)}
 .importlink{font-size:13px;color:var(--accent);text-decoration:underline;cursor:pointer}
+.big{font-family:var(--f-display);font-size:26px;font-variant-numeric:tabular-nums}
+.meter{height:10px;background:var(--soft);border-radius:6px;overflow:hidden}.meter>div{height:100%;border-radius:6px}
+ul.watch{margin:0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+ul.watch li{padding:8px 10px;border-radius:10px;background:var(--soft);font-size:14px;border-left:4px solid var(--accent)}
+ul.watch li.warn{border-left-color:var(--c-hunger)}
+.stg h4{margin:10px 0 2px;font-size:13px;color:var(--muted);font-weight:600}.stg ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:3px;font-size:14px}
+.devtl{display:flex;flex-direction:column;gap:2px}
+.devtl details{border-left:2px solid var(--line);padding:6px 0 8px 14px;position:relative}
+.devtl details>summary{color:var(--ink);font-size:15px}
+.devtl .dot{position:absolute;left:-7px;top:10px;width:12px;height:12px;border-radius:50%;background:var(--line);border:2px solid var(--bg)}
+.devtl details.past .dot{background:var(--muted)}.devtl details.cur .dot{background:var(--accent)}.devtl details.cur{border-left-color:var(--accent)}
+.gwsvg{overflow-x:auto}.gwsvg svg{width:100%;min-width:320px;height:auto;display:block}
 .learnbox{background:var(--soft);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
 .corr{width:100%;border-collapse:collapse;font-size:13px}.corr th,.corr td{text-align:left;padding:6px 4px;border-top:1px solid var(--line);vertical-align:top}.corr .pill{white-space:nowrap;font-size:11px}.corr th{color:var(--muted);font-weight:600;font-size:12px}.corr td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 .gwrow .num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
@@ -157,7 +169,9 @@ input[type=text],input[type=date],select{font:inherit;color:var(--ink);backgroun
       <button class="qbtn" id="q-feed">บันทึกการกิน</button>
       <button class="qbtn" id="q-new">บันทึกอาการ ไม่อัดเสียง</button>
     </div>
+    <div class="card" id="sleepcard"></div>
     <div id="episode"></div>
+    <div class="card" id="todaycard"></div>
   </main>
 
   <!-- HISTORY -->
@@ -188,6 +202,19 @@ input[type=text],input[type=date],select{font:inherit;color:var(--ink);backgroun
 
   <!-- PROFILE -->
   <section id="pane-baby" hidden style="display:flex;flex-direction:column;gap:16px">
+    <div class="card" id="dev-today"></div>
+    <div class="card" id="growth-card">
+      <h2>น้ำหนักและความยาว</h2>
+      <div id="gw-chart" class="gwchart"></div>
+      <div class="formgrid">
+        <div class="field"><label for="gw-date">วันที่ชั่ง</label><input id="gw-date" type="date"></div>
+        <div class="field"><label for="gw-kg">น้ำหนัก (kg)</label><input id="gw-kg" type="number" step="0.01" min="0.5" max="20" inputmode="decimal"></div>
+        <div class="field"><label for="gw-cm">ความยาว (cm)</label><input id="gw-cm" type="number" step="0.1" min="25" max="110" inputmode="decimal"></div>
+      </div>
+      <div class="row"><button class="btn" id="gw-add" type="button">เพิ่มบันทึก</button><span class="status" id="gw-st"></span></div>
+      <div id="gw-list"></div>
+    </div>
+    <div class="card"><h2>เส้นทางพัฒนาการ</h2><p class="hint">แตะแต่ละช่วงเพื่อดูรายละเอียด ช่วงปัจจุบันเปิดไว้ให้แล้ว</p><div id="dev-timeline" class="devtl"></div></div>
     <div class="card">
       <h2>เลือกน้อง</h2>
       <div class="chips" id="baby-list"></div>
@@ -208,16 +235,7 @@ input[type=text],input[type=date],select{font:inherit;color:var(--ink);backgroun
       <div class="field"><label for="bf-note">บันทึกอื่นๆ</label><textarea id="bf-note" maxlength="500" placeholder="เช่น นัดฉีดวัคซีน ข้อควรระวัง"></textarea></div>
       <div class="row"><button class="btn" id="bf-save" type="button">บันทึกข้อมูล</button><button class="btn ghost" id="bf-del" type="button">ลบน้องคนนี้</button><span class="status" id="bf-st"></span></div>
     </div>
-    <div class="card" id="growth-card">
-      <h2>น้ำหนักและความยาว</h2>
-      <div class="formgrid">
-        <div class="field"><label for="gw-date">วันที่ชั่ง</label><input id="gw-date" type="date"></div>
-        <div class="field"><label for="gw-kg">น้ำหนัก (kg)</label><input id="gw-kg" type="number" step="0.01" min="0.5" max="20" inputmode="decimal"></div>
-        <div class="field"><label for="gw-cm">ความยาว (cm)</label><input id="gw-cm" type="number" step="0.1" min="25" max="110" inputmode="decimal"></div>
-      </div>
-      <div class="row"><button class="btn" id="gw-add" type="button">เพิ่มบันทึก</button><span class="status" id="gw-st"></span></div>
-      <div id="gw-list"></div>
-    </div>
+
   </section>
 </div>
 
@@ -225,7 +243,7 @@ input[type=text],input[type=date],select{font:inherit;color:var(--ink);backgroun
   <button id="tab-now" role="tab" aria-selected="true">ตอนนี้</button>
   <button id="tab-hist" role="tab" aria-selected="false">ประวัติ</button>
   <button id="tab-ins" role="tab" aria-selected="false">วิเคราะห์</button>
-  <button id="tab-baby" role="tab" aria-selected="false">ข้อมูลน้อง</button>
+  <button id="tab-baby" role="tab" aria-selected="false">พัฒนาการ</button>
 </nav>
 
 <div class="sheet-bg" id="feed-sheet" hidden>
@@ -261,8 +279,8 @@ const SEED=[{"id": "seed1207", "ts": 1791090420000, "symptoms": ["restless", "ar
 
 /* ---------------- IndexedDB ---------------- */
 let idb;
-function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open('victor-cry',2);r.onupgradeneeded=()=>{const d=r.result;const has=n=>d.objectStoreNames.contains(n);
-  if(!has('entries'))d.createObjectStore('entries',{keyPath:'id'});if(!has('feeds'))d.createObjectStore('feeds',{keyPath:'id'});if(!has('audio'))d.createObjectStore('audio');if(!has('babies'))d.createObjectStore('babies',{keyPath:'id'});};
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open('victor-cry',3);r.onupgradeneeded=()=>{const d=r.result;const has=n=>d.objectStoreNames.contains(n);
+  if(!has('entries'))d.createObjectStore('entries',{keyPath:'id'});if(!has('feeds'))d.createObjectStore('feeds',{keyPath:'id'});if(!has('audio'))d.createObjectStore('audio');if(!has('babies'))d.createObjectStore('babies',{keyPath:'id'});if(!has('sleeps'))d.createObjectStore('sleeps',{keyPath:'id'});};
   r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
 function tx(store,mode,fn){return new Promise((res,rej)=>{const t=idb.transaction(store,mode);const s=t.objectStore(store);const out=fn(s);t.oncomplete=()=>res(out&&out.result!==undefined?out.result:out);t.onerror=()=>rej(t.error);});}
 const put=(st,v,k)=>tx(st,'readwrite',s=>k===undefined?s.put(v):s.put(v,k));
@@ -271,7 +289,7 @@ const getAll=st=>new Promise((res,rej)=>{const r=idb.transaction(st).objectStore
 const getOne=(st,k)=>new Promise((res,rej)=>{const r=idb.transaction(st).objectStore(st).get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
-let entries=[],feeds=[];
+let entries=[],feeds=[],sleeps=[];
 // old feed records used a single `type`; convert to method/side/milk
 function normFeed(f){if(f.method)return f;const t=f.type||'';const o=Object.assign({},f);
   if(t==='breastL'){o.method='breast';o.side='L';o.milk='breast';}else if(t==='breastR'){o.method='breast';o.side='R';o.milk='breast';}
@@ -284,6 +302,7 @@ async function load(){
   for(const f of allF)if(!f.babyId||!f.method){const n=normFeed(f);n.babyId=n.babyId||'victor';await put('feeds',n);Object.assign(f,n);delete f.type;}
   entries=allE.filter(e=>e.babyId===bid).sort((a,b)=>b.ts-a.ts);
   feeds=allF.filter(f=>f.babyId===bid).sort((a,b)=>b.ts-a.ts);
+  sleeps=(await getAll('sleeps')).filter(x=>x.babyId===bid).sort((a,b)=>(b.end||b.start||0)-(a.end||a.start||0));
 }
 async function loadBabies(){
   babies=await getAll('babies');
@@ -405,6 +424,7 @@ function assess(e,opts){
   if(e.state==='woke')add('hunger',1,'เพิ่งตื่นนอน');
   if(e.state==='afterFeed')add('gas',2,'ร้องหลังกินเสร็จ');
   if(e.state==='awakeLong')add('tired',3,'ตื่นอยู่นานแล้ว');
+  {const aw=awakeMinAt(e.ts),dd=ageDay(e.ts);if(aw!=null&&dd!=null){const ww=wakeWin(dd);if(aw>ww[1])add('tired',3,'ตื่นมาแล้ว '+fmtDur(aw)+' เกินช่วงที่เหมาะ ('+ww[0]+'–'+ww[1]+' นาที)');else if(aw>=ww[0])add('tired',1,'ตื่นมาแล้ว '+fmtDur(aw)+' เข้าช่วงง่วง');}}
   if(s.has('yawn'))add('tired',3,'หาว ขยี้ตา');
   if(s.has('stare')){add('tired',1,'จ้องเหม่อ');add('soothe',2,'หันหน้าหนี');}
   if(s.has('jerky')){add('tired',1,'ผวา');add('soothe',1,'ผวา');}
@@ -453,7 +473,7 @@ function gapBucket(m){if(m==null)return'unk';if(m<30)return'0-30';if(m<60)return
 function hourBucket(ts){const h=new Date(ts).getHours();return h<6?'night':h<12?'morning':h<18?'afternoon':'evening';}
 const _fcache=new Map();
 function features(e){
-  const key=e.id+'|'+(e.symptoms||[]).join(',')+'|'+e.state+'|'+e.diaper+'|'+(e.clips||[]).length+'|'+feeds.length;
+  const key=e.id+'|'+(e.symptoms||[]).join(',')+'|'+e.state+'|'+e.diaper+'|'+(e.clips||[]).length+'|'+feeds.length+'|'+sleeps.length+'|'+(sleeps[0]?(sleeps[0].end||0)+(sleeps[0].start||0):0);
   if(_fcache.has(key))return _fcache.get(key);
   const F={};(e.symptoms||[]).forEach(k=>{if(!REDSET.has(k))F['sym:'+k]=1});
   if(e.state)F['state:'+e.state]=1;if(e.diaper)F['diaper:'+e.diaper]=1;
@@ -462,6 +482,7 @@ function features(e){
   if(isBottleLike(f)&&f.ml>=85&&m!=null&&m<90)F['bigbottle']=1;
   if(f&&f.method==='breast'&&m!=null&&m<90)F['afterbreast']=1;
   F['hour:'+hourBucket(e.ts)]=1;
+  {const aw=awakeMinAt(e.ts),dd=ageDay(e.ts);if(aw!=null&&dd!=null){const ww=wakeWin(dd);F['awake:'+(aw>ww[1]?'over':aw>=ww[0]?'near':'ok')]=1;}}
   const clips=e.clips||[];
   if(clips.length){const c=clips[0];F['a:'+clipPattern(c).k]=1;if((c.highPct||0)>25)F['a:high']=1;if((c.boutMax||0)>=5)F['a:longbout']=1;
     if(clips.length>1&&((clips[clips.length-1].at||0)-(clips[0].at||0))/60000>=25)F['a:longepisode']=1;}
@@ -670,9 +691,10 @@ function renderHistory(){
   else{const rows=mk.map(k=>[k,median(mm[k]),mm[k].length]).sort((a,b)=>(a[1]??999)-(b[1]??999));const mx=Math.max(1,...rows.map(r=>r[1]||0));
     $('#method-bars').innerHTML=rows.map(([k,v,c])=>'<div class="bar"><span>'+METHODLABEL[k]+' ×'+c+'</span><div class="tr"><div class="fl" style="width:'+(v==null?0:Math.max(4,Math.round(100*v/mx)))+'%;background:var(--ok)"></div></div><span class="n">'+(v==null?'–':Math.round(v))+'</span></div>').join('');}
   // timeline (entries + feeds)
-  const items=[...entries.map(e=>({k:'e',ts:e.ts,e})),...feeds.map(f=>({k:'f',ts:f.ts,f}))].sort((a,b)=>b.ts-a.ts);
+  const items=[...entries.map(e=>({k:'e',ts:e.ts,e})),...feeds.map(f=>({k:'f',ts:f.ts,f})),...sleeps.filter(x=>x.start).map(z=>({k:'z',ts:z.start,z}))].sort((a,b)=>b.ts-a.ts);
   let lastDay='',html='';
   items.forEach(it=>{const dl=dayLabel(it.ts);if(dl!==lastDay){html+='<div class="daylabel">'+dl+'</div>';lastDay=dl;}
+    if(it.k==='z'){const z=it.z;html+='<div class="it"><span class="tm">'+hhmm(z.start)+'</span><div class="feedrow">นอน'+(z.end?' ถึง '+hhmm(z.end)+' · '+fmtDur(Math.round((z.end-z.start)/60000)):' · ยังหลับอยู่')+' <button class="chip" data-delsleep="'+z.id+'" type="button" style="margin-left:6px;padding:2px 10px;font-size:12px">ลบ</button></div></div>';return;}
     if(it.k==='f'){html+='<div class="it"><span class="tm">'+hhmm(it.ts)+'</span><div class="feedrow">กิน · '+esc(feedText(it.f))+' <button class="chip" data-delfeed="'+it.f.id+'" type="button" style="margin-left:6px;padding:2px 10px;font-size:12px">ลบ</button></div></div>';return;}
     const e=it.e,a=assess(e),c=a.top?CAUSE[a.top]:null;
     html+='<div class="it"><span class="tm">'+hhmm(e.ts)+'</span><div class="card" style="gap:8px"><div class="row">'+(a.red.length?'<span class="pill" style="background:var(--crit)">สัญญาณอันตราย</span>':'')+(c?'<span class="pill" style="background:'+c.col+'">'+c.t+'</span>':'<span class="status">ยังไม่ชัด</span>')+'<span class="status">'+(e.clips||[]).length+' คลิป</span></div>'+
@@ -684,6 +706,7 @@ function renderHistory(){
   const tl=$('#timeline');tl.innerHTML=html||'<p class="hint">ยังไม่มีบันทึก</p>';
   tl.querySelectorAll('[data-res]').forEach(el=>{const e=entries.find(x=>x.id===el.dataset.res);chipGroup(el,METHODS,()=>false,async k=>{e.resolution={method:k,minutes:null};e.closedAt=e.closedAt||Date.now();await saveEntry(e);renderAll();});});
   tl.querySelectorAll('[data-del]').forEach(b=>{let armed=false;b.onclick=async()=>{if(!armed){armed=true;b.textContent='แตะอีกครั้งเพื่อยืนยัน';b.className='btn danger';return;}await deleteEntry(entries.find(x=>x.id===b.dataset.del));renderAll();}});
+  tl.querySelectorAll('[data-delsleep]').forEach(b=>{let armed=false;b.onclick=async()=>{if(!armed){armed=true;b.textContent='ยืนยันลบ';return;}await del('sleeps',b.dataset.delsleep);sleeps=sleeps.filter(z=>z.id!==b.dataset.delsleep);renderAll();}});
   tl.querySelectorAll('[data-delfeed]').forEach(b=>{let armed=false;b.onclick=async()=>{if(!armed){armed=true;b.textContent='ยืนยันลบ';return;}await del('feeds',b.dataset.delfeed);feeds=feeds.filter(f=>f.id!==b.dataset.delfeed);renderAll();}});
   bindPlay(tl);
 }
@@ -694,6 +717,7 @@ $('#export').onclick=async()=>{
   const iso=ms=>ms?new Date(ms).toISOString():null;
   const data={app:'babies-ask',version:2,exportedAt:new Date().toISOString(),
     baby:{nick:baby.nick,full:baby.full,birth:baby.birth,sex:baby.sex,birthWeightKg:baby.bw,birthLengthCm:baby.bl,feedPlan:baby.feedPlan,growth:baby.growth||[],note:baby.note},
+    sleeps:sleeps.map(z=>({start:iso(z.start),end:iso(z.end)})),
     feeds:feeds.map(f=>({ts:iso(f.ts),method:f.method,side:f.side,milk:f.milk,ml:f.ml,minutes:f.minutes})),
     events:entries.map(e=>({id:e.id,ts:iso(e.ts),tried:e.tried||[],features:Object.keys(features(e)),symptoms:e.symptoms,state:e.state,diaper:e.diaper,note:e.note,resolution:e.resolution,closedAt:iso(e.closedAt),
       assessedTop:assess(e).top,clips:(e.clips||[]).map(c=>{const o=Object.assign({},c);delete o.audioKey;o.at=iso(c.at);return o;})}))};
@@ -708,10 +732,11 @@ $('#export').onclick=async()=>{
 const STATELABEL=Object.fromEntries(STATES),DIAPERLABEL=Object.fromEntries(DIAPERS);
 const GAPLABEL={'0-30':'กินไม่ถึง 30 นาที','30-60':'หลังกิน 30–60 นาที','60-120':'หลังกิน 1–2 ชม.','120-180':'หลังกิน 2–3 ชม.','180+':'หลังกินเกิน 3 ชม.','unk':'ไม่ทราบเวลากิน'};
 const HOURLABEL={night:'ช่วง 00–06 น.',morning:'ช่วง 06–12 น.',afternoon:'ช่วง 12–18 น.',evening:'ช่วง 18–24 น.'};
+const AWLABEL={'awake:over':'ตื่นนานเกินช่วงที่เหมาะ','awake:near':'ตื่นเข้าช่วงง่วง','awake:ok':'เพิ่งตื่นไม่นาน'};
 const ALABEL={'a:light':'เสียง: งอแงเบาๆ','a:rhythmic':'เสียง: ร้องเป็นจังหวะ','a:continuous':'เสียง: ร้องต่อเนื่อง','a:settling':'เสียง: ร้องห่างลง','a:high':'เสียงแหลมสูงบ่อย','a:longbout':'ร้องยาวรวด ≥ 5 วิ','a:longepisode':'ร้องเป็นช่วงๆ ≥ 25 นาที'};
 function featLabel(k){const [t,v]=k.split(':');
   if(t==='sym')return SYMLABEL[v]||v;if(t==='state')return STATELABEL[v]||v;if(t==='diaper')return 'ผ้าอ้อม: '+(DIAPERLABEL[v]||v);
-  if(t==='gap')return GAPLABEL[v];if(t==='hour')return HOURLABEL[v];if(k==='bigbottle')return 'ขวดล่าสุด ≥ 85 ml';if(k==='afterbreast')return 'หลังเข้าเต้าไม่ถึง 1.5 ชม.';return ALABEL[k]||k;}
+  if(t==='gap')return GAPLABEL[v];if(t==='hour')return HOURLABEL[v];if(k==='bigbottle')return 'ขวดล่าสุด ≥ 85 ml';if(k==='afterbreast')return 'หลังเข้าเต้าไม่ถึง 1.5 ชม.';return AWLABEL[k]||ALABEL[k]||k;}
 const pct=v=>Math.round(100*v)+'%';
 function renderInsights(){
   const nick=esc(baby?baby.nick:'น้อง');
@@ -759,9 +784,198 @@ function renderInsights(){
   $('#ins-weeks').innerHTML=wks.length?'<div class="bars">'+wks.map(k=>{const v=median(weeks[k]);return '<div class="bar"><span>สัปดาห์ '+new Date(k).toLocaleDateString('th-TH',{day:'numeric',month:'short'})+'</span><div class="tr"><div class="fl" style="width:'+Math.max(4,Math.round(100*v/wmx))+'%;background:var(--ok)"></div></div><span class="n">'+Math.round(v)+'</span></div>';}).join('')+'</div><p class="hint">ค่ากลางนาทีจนสงบ ยิ่งสั้นลงแปลว่าดูแลได้ตรงจุดขึ้น</p>':'<p class="hint">ยังไม่มีข้อมูลเวลาจนสงบ</p>';
 }
 
+/* ---------------- development, growth & sleep ----------------
+   WHO weight-for-age LMS (weeks 0–13, then months 4–12), from the WHO
+   Child Growth Standards tables. Rows are [ageDays, L, M, S]. */
+const WHO_W={
+ m:[[0,.3487,3.3464,.14602],[7,.2776,3.4879,.14483],[14,.2581,3.7529,.14142],[21,.2442,4.0603,.13807],[28,.2331,4.3671,.13497],[35,.2237,4.6590,.13215],[42,.2155,4.9303,.12960],[49,.2081,5.1817,.12729],[56,.2014,5.4149,.12520],[63,.1952,5.6319,.12330],[70,.1894,5.8346,.12157],[77,.1840,6.0242,.12001],[84,.1789,6.2019,.11860],[91,.1740,6.3690,.11732],
+    [121.75,.1553,7.0023,.11316],[152.19,.1395,7.5105,.11080],[182.63,.1257,7.9340,.10958],[213.06,.1134,8.2970,.10902],[243.5,.1021,8.6151,.10882],[273.94,.0917,8.9014,.10881],[304.38,.0820,9.1649,.10891],[334.81,.0730,9.4122,.10906],[365.25,.0644,9.6479,.10925]],
+ f:[[0,.3809,3.2322,.14171],[7,.2671,3.3388,.14600],[14,.2304,3.5693,.14339],[21,.2024,3.8352,.14060],[28,.1789,4.0987,.13805],[35,.1582,4.3476,.13583],[42,.1395,4.5793,.13392],[49,.1224,4.7950,.13228],[56,.1065,4.9959,.13087],[63,.0918,5.1842,.12966],[70,.0779,5.3618,.12861],[77,.0648,5.5295,.12770],[84,.0525,5.6883,.12691],[91,.0407,5.8393,.12622],
+    [121.75,-.0050,6.4237,.12402],[152.19,-.0430,6.8985,.12274],[182.63,-.0756,7.2970,.12204],[213.06,-.1039,7.6422,.12178],[243.5,-.1288,7.9487,.12181],[273.94,-.1507,8.2254,.12199],[304.38,-.1700,8.4800,.12223],[334.81,-.1872,8.7192,.12247],[365.25,-.2024,8.9481,.12268]]
+};
+function lmsAt(sex,day){const t=WHO_W[sex==='f'?'f':'m'];if(day<=0)return t[0].slice(1);
+  for(let i=1;i<t.length;i++)if(day<=t[i][0]){const a=t[i-1],b=t[i],r=(day-a[0])/(b[0]-a[0]);return [1,2,3].map(j=>a[j]+r*(b[j]-a[j]));}
+  return t[t.length-1].slice(1);}
+function zWeight(sex,day,kg){const [L,M,S]=lmsAt(sex,day);return (Math.pow(kg/M,L)-1)/(L*S);}
+function kgAtZ(sex,day,z){const [L,M,S]=lmsAt(sex,day);return M*Math.pow(1+L*S*z,1/L);}
+function normCdf(z){const t=1/(1+0.2316419*Math.abs(z)),d=0.3989423*Math.exp(-z*z/2);const p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return z>0?1-p:p;}
+function pctile(sex,day,kg){return Math.max(0.1,Math.min(99.9,100*normCdf(zWeight(sex,day,kg))));}
+
+function birthMs(){return baby&&baby.birth?new Date(baby.birth+'T00:00:00').getTime():null}
+function ageDay(ts){const b=birthMs();return b==null?null:Math.floor((ts-b)/86400000)}
+function dateAgeDay(dateStr){const b=birthMs();return b==null?null:Math.round((new Date(dateStr+'T00:00:00').getTime()-b)/86400000)}
+
+// Wake windows: rough, commonly used ranges (minutes) – a guide, not a rule.
+const WAKE=[[28,35,60],[56,45,75],[84,60,90],[120,75,120],[180,105,150],[270,150,180],[400,180,240]];
+function wakeWin(day){return (WAKE.find(w=>day<=w[0])||WAKE[WAKE.length-1]).slice(1)}
+
+/* sleep log */
+function hasSleepData(since){return sleeps.some(x=>x.start&&(x.end||Date.now())>=since)}
+function currentSleep(){return sleeps.find(x=>x.start&&!x.end)||null}
+function sleepingAt(at){return sleeps.some(x=>x.start&&x.start<=at&&(!x.end||x.end>=at))}
+function lastWake(at){let best=null;sleeps.forEach(x=>{if(x.end&&x.end<=at&&(!best||x.end>best))best=x.end});return best}
+function awakeMinAt(at){if(sleepingAt(at))return null;const w=lastWake(at);if(w==null||at-w>6*3600000)return null;return Math.round((at-w)/60000)}
+function sleepMinBetween(a,b){let t=0;sleeps.forEach(x=>{if(!x.start)return;const s=Math.max(a,x.start),e=Math.min(b,x.end||Date.now());if(e>s)t+=e-s});return Math.round(t/60000)}
+async function saveSleep(x){await put('sleeps',x);const i=sleeps.findIndex(y=>y.id===x.id);if(i>=0)sleeps[i]=x;else sleeps.unshift(x);sleeps.sort((a,b)=>(b.end||b.start||0)-(a.end||a.start||0));}
+function renderSleepCard(){
+  const box=$('#sleepcard');if(!box||!baby)return;const now=Date.now();const day=ageDay(now);const win=day!=null?wakeWin(day):null;
+  const cur=currentSleep();let h='';
+  if(cur){const m=Math.round((now-cur.start)/60000);
+    h='<div class="row" style="justify-content:space-between"><h2>กำลังหลับ</h2><span class="status">ตั้งแต่ '+hhmm(cur.start)+'</span></div><div class="big">'+fmtDur(m)+'</div>'+
+      '<div class="row"><button class="btn" id="sl-toggle" type="button">น้องตื่นแล้ว</button><button class="btn ghost" id="sl-back" type="button">เลื่อนเวลาหลับ −5 นาที</button></div>';}
+  else{const aw=awakeMinAt(now);
+    h='<div class="row" style="justify-content:space-between"><h2>'+(aw!=null?'ตื่นมาแล้ว':'การนอน')+'</h2>'+(win?'<span class="status">ช่วงตื่นที่เหมาะ '+win[0]+'–'+win[1]+' นาที</span>':'')+'</div>';
+    if(aw!=null&&win){const r=Math.min(1,aw/win[1]);const col=aw>win[1]?'var(--crit)':aw>=win[0]?'var(--c-hunger)':'var(--ok)';
+      h+='<div class="big">'+fmtDur(aw)+'</div><div class="meter"><div style="width:'+Math.round(100*r)+'%;background:'+col+'"></div></div>'+
+        '<p class="hint">'+(aw>win[1]?'เกินช่วงที่เหมาะแล้ว น้องอาจง่วงเกินจนหลับยาก เริ่มกล่อมนอนเลย ลดแสง ห่อตัว อุ้มแนบอก':aw>=win[0]?'เริ่มเข้าช่วงง่วง สังเกตหาว ขยี้ตา จ้องเหม่อ แล้วเริ่มกล่อมนอน':'ยังอยู่ในช่วงตื่นปกติ')+'</p>';}
+    else h+='<p class="hint">แตะปุ่มเมื่อน้องหลับและตื่น แอปจะนับช่วงตื่นเทียบกับช่วงที่เหมาะกับอายุ และใช้ช่วยแยกอาการง่วงเกิน</p>';
+    h+='<div class="row"><button class="btn" id="sl-toggle" type="button">น้องหลับแล้ว</button>'+(aw==null?'<button class="btn ghost" id="sl-woke" type="button">น้องเพิ่งตื่น</button>':'<button class="btn ghost" id="sl-back" type="button">เลื่อนเวลาตื่น −5 นาที</button>')+'</div>';}
+  box.innerHTML=h;
+  $('#sl-toggle').onclick=async()=>{const c=currentSleep();if(c){c.end=Date.now();await saveSleep(c);toast('น้องตื่น '+hhmm(c.end)+' · หลับไป '+fmtDur(Math.round((c.end-c.start)/60000)));}
+    else{await saveSleep({id:'z_'+uid(),babyId:baby.id,start:Date.now(),end:null});toast('น้องหลับ '+hhmm(Date.now()));}renderSleepCard();renderTodayCard();};
+  const wk=$('#sl-woke');if(wk)wk.onclick=async()=>{await saveSleep({id:'z_'+uid(),babyId:baby.id,start:null,end:Date.now()});renderSleepCard();};
+  const bk=$('#sl-back');if(bk)bk.onclick=async()=>{const c=currentSleep();if(c){c.start-=300000;await saveSleep(c);}else{const l=sleeps.filter(x=>x.end).sort((a,b)=>b.end-a.end)[0];if(l){l.end=Math.max((l.start||0)+60000,l.end-300000);await saveSleep(l);}}renderSleepCard();};
+}
+
+/* developmental stages (general guidance; sources: WHO, CDC, AAP, NSF) */
+const STAGES=[
+ {from:0,to:7,title:'สัปดาห์แรก',focus:'ปรับตัวกับการกินและการนอน',
+  normal:['น้ำหนักลดได้ราว 7–10% ในไม่กี่วันแรก','ตัวเหลืองเล็กน้อยช่วงวันที่ 2–5','อุจจาระเปลี่ยนจากสีเขียวดำเป็นเหลือง','นอนเกือบทั้งวัน ตื่นมากินเป็นช่วงๆ'],
+  concerns:['ตัวเหลืองลามถึงแขนขา หรือซึม ดูดนมไม่ดี','ผ้าอ้อมเปียกน้อยลงเรื่อยๆ','ไข้ ≥ 38°C ต้องพบแพทย์ทันที'],
+  manage:['ให้นม 8–12 ครั้ง/วัน ถ้าหลับเกิน 3 ชม. ปลุกมากิน','ทำ skin-to-skin บ่อยๆ','ไปตามนัดตรวจหลังคลอดและตรวจตัวเหลือง'],
+  milestones:['มองหน้าในระยะ 20–30 ซม.','สะดุ้งเมื่อได้ยินเสียงดัง (Moro reflex)']},
+ {from:8,to:14,title:'สัปดาห์ที่ 2',focus:'น้ำหนักกลับมาเท่าแรกคลอด',
+  normal:['น้ำหนักควรกลับมาเท่าแรกคลอดภายใน 10–14 วัน','สายสะดือหลุดในช่วง 1–3 สัปดาห์','เริ่มตื่นนานขึ้นเล็กน้อย'],
+  concerns:['น้ำหนักยังไม่กลับมาเท่าแรกคลอดเมื่อครบ 2 สัปดาห์','สะดือแดง บวม มีหนองหรือกลิ่น'],
+  manage:['เริ่ม tummy time สั้นๆ 1–2 นาที ตอนตื่นและมีผู้ใหญ่เฝ้า','นอนหงายบนที่นอนเรียบ ไม่มีหมอนหรือตุ๊กตา'],
+  milestones:['หันหาเสียงที่คุ้นเคย']},
+ {from:15,to:21,title:'สัปดาห์ที่ 3',focus:'growth spurt ครั้งแรก',
+  normal:['ช่วง 2–3 สัปดาห์มักมี growth spurt กินถี่ขึ้น 1–3 วัน','เริ่มร้องมากขึ้น ช่วงร้องมากของทารกมักเริ่มราว 2 สัปดาห์'],
+  concerns:['ร้องเสียงแหลมผิดปกติ ปลอบไม่หยุดหลายชั่วโมง','ผ้าอ้อมเปียก < 6 ครั้ง/วัน'],
+  manage:['ให้นมตามที่น้องขอ การดูดถี่ช่วยเพิ่มน้ำนม','พ่อแม่แบ่งเวรกัน ให้แต่ละคนได้นอนยาวสักช่วง'],
+  milestones:['จ้องหน้าได้นานขึ้น']},
+ {from:22,to:28,title:'สัปดาห์ที่ 4',focus:'ตื่นนานขึ้น เริ่มแยกกลางวันกลางคืน',
+  normal:['ตื่นต่อเนื่องได้ราว 35–60 นาที','เริ่มมีช่วงงอแงตอนบ่ายถึงเย็น'],
+  concerns:['หูพับหรือผิดรูป ควรพบแพทย์ก่อนอายุ 6 สัปดาห์ เพราะดัดหูได้ช่วงนี้เท่านั้น'],
+  manage:['กลางวันเปิดม่านให้สว่าง คุยเล่นได้ กลางคืนมืดและเงียบ','เริ่มสังเกตสัญญาณง่วง: หาว ขยี้ตา จ้องเหม่อ'],
+  milestones:['ยกหัวได้ครู่หนึ่งตอนนอนคว่ำ']},
+ {from:29,to:42,title:'สัปดาห์ที่ 5–6 (ครบ 1 เดือน)',focus:'growth spurt รอบ 6 สัปดาห์ และร้องมากขึ้น',
+  normal:['ช่วงราว 6 สัปดาห์มักมี growth spurt กินแล้วขอกินอีก กินถี่ติดกัน 2–3 วัน','ร้องมากขึ้นและหนักช่วงเย็น ช่วงร้องมากมักพีคในเดือนที่ 2 แล้วค่อยๆ ลดลงเมื่อ 3–5 เดือน','งีบกลางวันสั้นหรือไม่ยอมนอน เพราะสนใจสิ่งรอบตัวมากขึ้นและง่วงเกินได้ง่าย','อาจเริ่มยิ้มตอบเมื่อ 6 สัปดาห์'],
+  concerns:['กินแล้วร้องขออีก: แยกให้ได้ว่าหิวจริง (อ้าปาก หันหา ดูดแรงมีเสียงกลืน) หรือดูดเพื่อปลอบ หรือมีลมในท้อง (แอ่นตัว ชันคอสู้)','น้ำหนักขึ้น < 150 g/สัปดาห์ หรือผ้าอ้อมเปียก < 6 ครั้ง/วัน ให้ปรึกษาแพทย์','แหวะพุ่ง แอ่นตัวร้องแทบทุกมื้อ หรือไม่ยอมกิน','หูผิดรูป: ช่วงดัดหูได้ใกล้ปิดแล้ว (ราว 6 สัปดาห์)','ถ้าพ่อแม่เครียดจนคุมอารมณ์ไม่ได้ วางน้องในที่ปลอดภัยแล้วออกไปพักสักครู่ ห้ามเขย่าเด็กเด็ดขาด'],
+  manage:['ช่วง growth spurt ให้นมตามที่ขอ ไม่ต้องจำกัด และไม่ต้องเพิ่มปริมาณนมขวดต่อมื้อแบบก้าวกระโดด','ดูช่วงตื่น ราว 45–75 นาที แล้วเริ่มกล่อมก่อนง่วงเกิน','งีบแบบอุ้มแนบอกหรือในเปลได้ ไม่ใช่การสร้างนิสัยเสีย','ช่วงเย็นที่ร้องหนัก เตรียมคนช่วย ลดแสง เปิด white noise ห่อตัว โยกช้าๆ','บันทึกการกิน การนอน และวิธีที่ได้ผลในแอป เพื่อดูรูปแบบของน้อง'],
+  milestones:['ยกหัวได้นานขึ้นตอนนอนคว่ำ','มองตามของที่เคลื่อนไหว','ยิ้มตอบเมื่อคุยด้วย (ราว 6–8 สัปดาห์)']},
+ {from:43,to:56,title:'สัปดาห์ที่ 7–8',focus:'ยิ้มตอบ และเตรียมวัคซีน 2 เดือน',
+  normal:['ช่วงร้องมากยังอยู่ในระดับสูง โดยเฉพาะช่วงเย็น','ยิ้มตอบ ทำเสียงอ้อแอ้','นอนกลางคืนได้ยาวขึ้นบ้าง'],
+  concerns:['ไม่มองหน้า ไม่สะดุ้งหรือไม่ตอบสนองต่อเสียงดัง','ตัวอ่อนปวกเปียกหรือเกร็งผิดปกติ'],
+  manage:['นัดวัคซีนตามสมุดบันทึกสุขภาพแม่และเด็ก (ช่วงอายุ 2 เดือน)','tummy time รวมราว 15–30 นาทีต่อวัน แบ่งเป็นช่วงสั้นๆ'],
+  milestones:['ยิ้มเมื่อคุยด้วย','ทำเสียงอื่นนอกจากร้อง','ยกหัวได้ตอนนอนคว่ำ']},
+ {from:57,to:90,title:'2–3 เดือน',focus:'ร้องเริ่มลดลง การนอนเริ่มเป็นรูปแบบ',
+  normal:['การร้องเริ่มลดลงหลังพีคเดือนที่ 2','ช่วงตื่นยาวขึ้นราว 60–90 นาที','มักมี growth spurt ราว 3 เดือน'],
+  concerns:['ยังไม่ยิ้มตอบ ไม่มองตาม','ไม่ยกหัวตอนนอนคว่ำ'],
+  manage:['เลิกห่อตัวเมื่อน้องเริ่มพยายามพลิกตัว','คุย ร้องเพลง อ่านหนังสือให้ฟังทุกวัน'],
+  milestones:['ชันคอได้ดีขึ้น','ส่งเสียงอ้อแอ้ตอบโต้','เอามือเข้าปาก']},
+ {from:91,to:120,title:'3–4 เดือน',focus:'หัวเราะ คว้าของ',
+  normal:['หัวเราะเสียงดัง คว้าของเล่น','การนอนอาจสะดุดช่วงราว 4 เดือน'],
+  concerns:['ชันคอไม่ได้เมื่อจับนั่ง','ไม่ส่งเสียงหรือไม่หันตามเสียง'],
+  manage:['นัดวัคซีนช่วง 4 เดือน','วางลงนอนตอนง่วงแต่ยังไม่หลับ'],
+  milestones:['ชันคอได้มั่นคง','หัวเราะ','คว้าของ']},
+ {from:121,to:180,title:'4–6 เดือน',focus:'พลิกตัว เตรียมอาหารตามวัย',
+  normal:['พลิกคว่ำพลิกหงาย','สนใจอาหารที่ผู้ใหญ่กิน'],
+  concerns:['ไม่พลิกตัวเลยเมื่อ 6 เดือน','น้ำหนักไม่ขึ้น'],
+  manage:['WHO แนะนำนมแม่อย่างเดียวถึง 6 เดือน แล้วจึงเริ่มอาหารตามวัย','ปรึกษาแพทย์ก่อนเริ่มอาหารตามวัย'],
+  milestones:['พลิกตัว','นั่งได้เมื่อมีคนประคอง']},
+ {from:181,to:270,title:'6–9 เดือน',focus:'อาหารตามวัย นั่งเอง',
+  normal:['เริ่มอาหารตามวัยควบคู่นม','ฟันซี่แรกอาจขึ้น','ติดพ่อแม่ กลัวคนแปลกหน้า'],
+  concerns:['ไม่นั่งเองเมื่อ 9 เดือน','ไม่ส่งเสียงพยางค์ซ้ำ เช่น บาบา'],
+  manage:['เพิ่มเนื้อสัมผัสอาหารทีละขั้น','จัดบ้านให้ปลอดภัยก่อนน้องคลาน'],
+  milestones:['นั่งเอง','ส่งเสียงพยางค์ซ้ำ']},
+ {from:271,to:400,title:'9–12 เดือน',focus:'คลาน เกาะยืน คำแรก',
+  normal:['คลาน เกาะยืน บางคนเริ่มตั้งไข่','พูดคำแรกที่มีความหมาย'],
+  concerns:['ไม่ตอบสนองเมื่อเรียกชื่อ','ไม่ชี้หรือโบกมือ'],
+  manage:['นัดตรวจพัฒนาการและวัคซีนตามสมุดบันทึกสุขภาพ'],
+  milestones:['เกาะยืน','โบกมือบ๊ายบาย','พูดคำแรก']}
+];
+function stageAt(day){return STAGES.find(s=>day>=s.from&&day<=s.to)||STAGES[STAGES.length-1]}
+const TARGET={feeds:[8,12],sleepH:[14,17]}; // 0–3 months (feeds per day; NSF total sleep hours)
+function dayStart(ms){const d=new Date(ms);d.setHours(0,0,0,0);return d.getTime()}
+function growthRows(){const b=baby;const rows=[];if(b&&b.bw&&b.birth)rows.push({date:b.birth,kg:b.bw,cm:b.bl,birth:true});(b&&b.growth||[]).forEach(g=>rows.push(g));return rows.filter(r=>r.kg).sort((x,y)=>x.date.localeCompare(y.date));}
+
+function todayWatch(){
+  // personalised list for today, from the logs
+  const now=Date.now(),day=ageDay(now);if(day==null)return[];const out=[];const t0=dayStart(now);const hrs=(now-t0)/3600000;
+  const win=wakeWin(day);const aw=awakeMinAt(now);
+  if(aw!=null&&aw>win[1])out.push(['warn','ตื่นมาแล้ว '+fmtDur(aw)+' เกินช่วงที่เหมาะ ('+win[0]+'–'+win[1]+' นาที) เริ่มกล่อมนอนเลย']);
+  const fToday=feeds.filter(f=>f.ts>=t0);const exp=TARGET.feeds[0]*hrs/24;
+  const spurt=(day>=14&&day<=24)||(day>=35&&day<=49)||(day>=80&&day<=100);
+  if(hrs>=6&&fToday.length>=Math.max(4,exp*1.4))out.push(['info','วันนี้กินแล้ว '+fToday.length+' มื้อ ถี่กว่าปกติ'+(spurt?' เข้ากับช่วง growth spurt ให้กินตามที่ขอ มักดีขึ้นใน 2–3 วัน':' ถ้ากินแล้วยังร้อง ลองเช็กลมในท้องด้วย')]);
+  if(hrs>=8&&fToday.length<exp*0.6)out.push(['warn','วันนี้บันทึกการกินไว้ '+fToday.length+' มื้อ น้อยกว่าที่ควร (8–12 มื้อ/วัน) ถ้าไม่ได้ลืมบันทึก ให้สังเกตผ้าอ้อมเปียกและความง่วงซึม']);
+  const bottleMl=fToday.filter(isBottleLike).map(f=>f.ml||0);if(bottleMl.some(v=>v>=90)&&day<60)out.push(['info','มีมื้อขวด ≥ 90 ml วันนี้ ถ้ากินแล้วแอ่นตัวหรือร้อง ลองแบ่งเป็นมื้อเล็กลงและจับเรอทุก 30 ml']);
+  if(hasSleepData(t0)){const dayStartH=t0+6*3600000;const napMin=now>dayStartH?sleepMinBetween(dayStartH,Math.min(now,t0+18*3600000)):0;
+    if(now>t0+13*3600000&&napMin<180)out.push(['warn','งีบกลางวันวันนี้รวม '+fmtDur(napMin)+' ค่อนข้างน้อย ทารกวัยนี้ต้องนอนรวม 14–17 ชม./วัน ลองงีบแบบอุ้มแนบอกหรือในเปล']);}
+  else if(!sleeps.some(x=>x.start))out.push(['info','ยังไม่มีบันทึกการนอน ใช้ปุ่ม "น้องหลับแล้ว" ในหน้าตอนนี้ แอปจะช่วยดูช่วงตื่นให้']);
+  const cries=entries.filter(e=>e.ts>=t0).length;if(cries>=4)out.push(['info','วันนี้ร้อง '+cries+' ครั้ง ช่วงอายุนี้การร้องเพิ่มขึ้นเป็นเรื่องปกติและมักพีคในเดือนที่ 2 โดยเฉพาะช่วงเย็น']);
+  const g=growthRows();const last=g[g.length-1];
+  if(!last||(now-new Date(last.date+'T00:00:00').getTime())>7*86400000)out.push(['info','ไม่ได้ชั่งน้ำหนักเกิน 7 วัน ชั่งสัปดาห์ละครั้งด้วยเครื่องเดิม แล้วบันทึกในหน้าพัฒนาการ']);
+  if(baby.sex&&g.length>=2){const zs=g.map(r=>zWeight(baby.sex,dateAgeDay(r.date),r.kg));const dz=zs[zs.length-1]-Math.max(...zs);if(dz<-1.3)out.push(['warn','เปอร์เซ็นไทล์น้ำหนักลดลงจากจุดสูงสุดค่อนข้างมาก ควรปรึกษากุมารแพทย์']);}
+  return out;
+}
+function stageHtml(s,open){
+  const li=a=>'<ul>'+a.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>';
+  return '<div class="stg"><h4>ที่พบได้ปกติ</h4>'+li(s.normal)+'<h4>สิ่งที่ต้องระวัง</h4>'+li(s.concerns)+'<h4>แนวทางดูแล</h4>'+li(s.manage)+'<h4>พัฒนาการที่ควรเริ่มเห็น</h4>'+li(s.milestones)+'</div>';
+}
+function ageText(day){const w=Math.floor(day/7),d=day%7;return 'วันที่ '+day+' · สัปดาห์ที่ '+(w+1)+(d?'':' (ครบ '+w+' สัปดาห์)');}
+function renderTodayCard(){
+  const box=$('#todaycard');if(!box||!baby)return;const day=ageDay(Date.now());
+  if(day==null||day<0){box.innerHTML='<p class="hint">ใส่วันเกิดในหน้าพัฒนาการ เพื่อดูคำแนะนำตามอายุ</p>';return;}
+  const s=stageAt(day);const w=todayWatch().slice(0,3);
+  box.innerHTML='<div class="row" style="justify-content:space-between"><h2>'+esc(baby.nick)+' '+ageText(day)+'</h2></div><p class="hint" style="margin-top:-6px">'+esc(s.title)+' · '+esc(s.focus)+'</p>'+
+    (w.length?'<ul class="watch">'+w.map(([k,t])=>'<li class="'+k+'">'+esc(t)+'</li>').join('')+'</ul>':'')+
+    '<button class="btn ghost" id="go-dev" type="button">ดูพัฒนาการและคำแนะนำทั้งหมด</button>';
+  $('#go-dev').onclick=()=>{editing=null;renderBabyPane();showTab('baby')};
+}
+function renderDevToday(){
+  const box=$('#dev-today');if(!box||!baby)return;const now=Date.now(),day=ageDay(now);
+  if(day==null||day<0){box.innerHTML='<h2>พัฒนาการ</h2><p class="hint">ใส่วันเกิดในฟอร์มด้านล่างก่อน</p>';return;}
+  const s=stageAt(day),next=STAGES[STAGES.indexOf(s)+1];const t0=dayStart(now);
+  const fT=feeds.filter(f=>f.ts>=t0),ml=fT.filter(isBottleLike).reduce((a,f)=>a+(f.ml||0),0);
+  const slp=hasSleepData(t0)?sleepMinBetween(t0,now):null;const cries=entries.filter(e=>e.ts>=t0).length;
+  const win=wakeWin(day);const g=growthRows();const last=g[g.length-1];
+  const pc=last&&baby.sex?pctile(baby.sex,dateAgeDay(last.date),last.kg):null;
+  const tiles=[['กินวันนี้',fT.length+' มื้อ'+(ml?' · '+ml+' ml':''),'เป้า 8–12 มื้อ/วัน'],['นอนวันนี้',slp!=null?fmtDur(slp):'ยังไม่บันทึก','ทั้งวันควรราว 14–17 ชม.'],['ช่วงตื่นที่เหมาะ',win[0]+'–'+win[1]+' นาที','แนวทางคร่าวๆ ตามอายุ'],['ร้องวันนี้',cries+' ครั้ง',''],
+    ['น้ำหนักล่าสุด',last?last.kg.toFixed(2)+' kg':'–',pc!=null?'เปอร์เซ็นไทล์ '+Math.round(pc)+' (WHO)':(last&&!baby.sex?'ใส่เพศเพื่อดูเปอร์เซ็นไทล์':'')]];
+  const w=todayWatch();
+  box.innerHTML='<h2>'+esc(baby.nick)+' '+ageText(day)+'</h2><p class="hint" style="margin-top:-6px">'+esc(s.title)+' · '+esc(s.focus)+'</p>'+
+    '<div class="tiles">'+tiles.map(([k,v,n])=>'<div class="tile"><div class="k">'+k+'</div><div class="v">'+esc(v)+'</div>'+(n?'<div class="k">'+esc(n)+'</div>':'')+'</div>').join('')+'</div>'+
+    (w.length?'<h3>สิ่งที่ควรดูวันนี้</h3><ul class="watch">'+w.map(([k,t])=>'<li class="'+k+'">'+esc(t)+'</li>').join('')+'</ul>':'')+
+    stageHtml(s,true)+(next?'<p class="hint">อีก '+(next.from-day)+' วัน เข้าสู่ช่วง “'+esc(next.title)+'” · '+esc(next.focus)+'</p>':'');
+}
+function renderDevTimeline(){
+  const el=$('#dev-timeline');if(!el||!baby)return;const day=ageDay(Date.now());
+  el.innerHTML=STAGES.map(s=>{const cur=day!=null&&day>=s.from&&day<=s.to,past=day!=null&&day>s.to;
+    return '<details'+(cur?' open':'')+' class="'+(cur?'cur':past?'past':'')+'"><summary><span class="dot"></span><b>'+esc(s.title)+'</b> <span class="hint">วันที่ '+s.from+'–'+s.to+'</span><br><span class="hint">'+esc(s.focus)+'</span></summary>'+stageHtml(s)+'</details>';}).join('');
+}
+function renderGrowthChart(){
+  const el=$('#gw-chart');if(!el||!baby)return;const g=growthRows();const sex=baby.sex;
+  if(!sex){el.innerHTML='<p class="hint">ใส่เพศของน้องในฟอร์มด้านล่าง เพื่อเทียบกับกราฟมาตรฐาน WHO</p>';return;}
+  const day=Math.max(0,ageDay(Date.now())||0);const maxD=Math.min(365,Math.max(91,Math.ceil((day+28)/7)*7));
+  const W=520,H=260,pl=34,pr=56,pt=10,pb=26;const lines=[[-1.881,'P3'],[-1.036,'P15'],[0,'P50'],[1.036,'P85'],[1.881,'P97']];
+  const maxKg=Math.max(kgAtZ(sex,maxD,2.2),...g.map(r=>r.kg))+0.3,minKg=Math.max(0,Math.min(kgAtZ(sex,0,-2.2),...g.map(r=>r.kg))-0.3);
+  const X=d=>pl+(W-pl-pr)*d/maxD,Y=k=>pt+(H-pt-pb)*(1-(k-minKg)/(maxKg-minKg));
+  let svg='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="กราฟน้ำหนักเทียบเปอร์เซ็นไทล์ WHO">';
+  for(let k=Math.ceil(minKg);k<=maxKg;k++)svg+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+Y(k).toFixed(1)+'" y2="'+Y(k).toFixed(1)+'" stroke="var(--line)" stroke-width="1"/><text x="'+(pl-6)+'" y="'+(Y(k)+4).toFixed(1)+'" font-size="11" text-anchor="end" fill="var(--muted)">'+k+'</text>';
+  const step=maxD<=120?14:30;for(let d=0;d<=maxD;d+=step)svg+='<text x="'+X(d).toFixed(1)+'" y="'+(H-8)+'" font-size="11" text-anchor="middle" fill="var(--muted)">'+(maxD<=120?(d/7)+'w':Math.round(d/30.4)+'m')+'</text>';
+  lines.forEach(([z,lab])=>{let p='';for(let d=0;d<=maxD;d+=Math.max(1,Math.round(maxD/60)))p+=(p?'L':'M')+X(d).toFixed(1)+' '+Y(kgAtZ(sex,d,z)).toFixed(1);
+    svg+='<path d="'+p+'" fill="none" stroke="'+(z===0?'var(--muted)':'var(--line)')+'" stroke-width="'+(z===0?1.6:1.2)+'"'+(z===0?'':' stroke-dasharray="4 3"')+'/><text x="'+(W-pr+4)+'" y="'+(Y(kgAtZ(sex,maxD,z))+4).toFixed(1)+'" font-size="11" fill="var(--muted)">'+lab+'</text>';});
+  svg+='<line x1="'+X(day).toFixed(1)+'" x2="'+X(day).toFixed(1)+'" y1="'+pt+'" y2="'+(H-pb)+'" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2 3" opacity=".6"/>';
+  const pts=g.map(r=>[X(dateAgeDay(r.date)),Y(r.kg)]);if(pts.length>1)svg+='<path d="'+pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join('')+'" fill="none" stroke="var(--accent)" stroke-width="2.2"/>';
+  pts.forEach((p,i)=>svg+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+(i===pts.length-1?5:3.5)+'" fill="var(--accent)" stroke="var(--surface)" stroke-width="1.5"/>');
+  el.innerHTML='<div class="gwsvg">'+svg+'</svg></div><p class="hint">เส้นประคือเปอร์เซ็นไทล์ 3, 15, 85, 97 และเส้นทึบคือค่ากลาง (P50) ของ'+(sex==='f'?'เด็กหญิง':'เด็กชาย')+'ตามมาตรฐาน WHO สิ่งสำคัญคือน้องเติบโตตามเส้นของตัวเองสม่ำเสมอ ถ้าตกลงข้ามเส้นมาตรฐานมากกว่า 1 เส้น ควรปรึกษาแพทย์</p>';
+}
+
 /* ---------------- baby profiles ---------------- */
 let editing=null; // profile shown in the form
 function renderBabyPane(){
+  renderDevToday();renderGrowthChart();renderDevTimeline();
   chipGroup($('#baby-list'),babies.map(b=>[b.id,b.nick||'ไม่มีชื่อ']),k=>baby&&baby.id===k,async k=>{await switchBaby(k);});
   fillForm(editing||baby);
 }
@@ -783,9 +997,11 @@ function renderGrowth(b){
   $('#gw-list').innerHTML=rows.map((r,i)=>{
     const prev=rows[i+1];let gain='';
     if(prev&&r.kg&&prev.kg){const d=(new Date(r.date)-new Date(prev.date))/86400000;if(d>0)gain='+'+Math.round((r.kg-prev.kg)*1000/d)+' g/วัน';}
+    const pc=(b.sex&&r.kg&&b.birth)?Math.round(pctile(b.sex,Math.round((new Date(r.date+'T00:00:00')-new Date(b.birth+'T00:00:00'))/86400000),r.kg)):null;
+    if(pc!=null)gain=(gain?gain+' · ':'')+'P'+pc;
     return '<div class="gwrow"><span>'+esc(new Date(r.date+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}))+(r.birth?' (แรกคลอด)':'')+'</span><span class="num">'+(r.kg?r.kg.toFixed(2)+' kg':'–')+'</span><span class="num">'+(r.cm?r.cm+' cm':'')+'</span><span class="hint">'+gain+(r.birth?'':' <button class="chip" type="button" data-gdel="'+esc(r.date)+'" style="padding:2px 10px;font-size:12px">ลบ</button>')+'</span></div>';
   }).join('');
-  $('#gw-list').querySelectorAll('[data-gdel]').forEach(btn=>btn.onclick=async()=>{b.growth=(b.growth||[]).filter(x=>x.date!==btn.dataset.gdel);await put('babies',b);renderGrowth(b);});
+  $('#gw-list').querySelectorAll('[data-gdel]').forEach(btn=>btn.onclick=async()=>{b.growth=(b.growth||[]).filter(x=>x.date!==btn.dataset.gdel);await put('babies',b);if(baby.id===b.id)baby=b;renderGrowth(b);renderGrowthChart();renderDevToday();});
 }
 const num=v=>v===''||v==null?null:Number(v);
 $('#bf-save').onclick=async()=>{
@@ -807,7 +1023,7 @@ $('#bf-del').onclick=async()=>{const btn=$('#bf-del');
 $('#gw-add').onclick=async()=>{const b=editing;const d=$('#gw-date').value,kg=num($('#gw-kg').value),cm=num($('#gw-cm').value);const st=$('#gw-st');
   if(!d||(kg==null&&cm==null)){st.className='status err';st.textContent='ใส่วันที่และน้ำหนักหรือความยาว';return;}
   b.growth=(b.growth||[]).filter(x=>x.date!==d).concat([{date:d,kg,cm}]);await put('babies',b);if(baby.id===b.id)baby=b;
-  st.className='status ok';st.textContent='เพิ่มแล้ว';$('#gw-kg').value='';$('#gw-cm').value='';renderGrowth(b);};
+  st.className='status ok';st.textContent='เพิ่มแล้ว';$('#gw-kg').value='';$('#gw-cm').value='';renderGrowth(b);renderGrowthChart();renderDevToday();renderTodayCard();};
 async function switchBaby(id){baby=babies.find(b=>b.id===id)||babies[0];lsSet('ba-active',baby.id);editing=null;await load();renderAll();if(!$('#pane-baby').hidden)renderBabyPane();}
 $('#baby-name').onclick=()=>{renderBabyPane();showTab('baby');};
 
@@ -818,10 +1034,10 @@ function showTab(t){
   window.scrollTo({top:0});
 }
 $('#tab-now').onclick=()=>showTab('now');$('#tab-hist').onclick=()=>{renderHistory();showTab('hist')};$('#tab-ins').onclick=()=>{renderInsights();showTab('ins')};$('#tab-baby').onclick=()=>{editing=null;renderBabyPane();showTab('baby')};
-function renderAll(){renderHeader();renderEpisode();if(!$('#pane-hist').hidden)renderHistory();if(!$('#pane-ins').hidden)renderInsights();}
+function renderAll(){renderHeader();renderSleepCard();renderEpisode();renderTodayCard();if(!$('#pane-baby').hidden){renderDevToday();renderGrowthChart();renderDevTimeline();}if(!$('#pane-hist').hidden)renderHistory();if(!$('#pane-ins').hidden)renderInsights();}
 function tickClock(){const n=Date.now();$('#clock').innerHTML=hhmmss(n)+'<small>'+esc(fmtDate(n))+'</small>';}
 setInterval(tickClock,1000);tickClock();
-setInterval(renderHeader,60000);
+setInterval(renderHeader,60000);setInterval(()=>{if(!$('#pane-now').style.display||$('#pane-now').style.display!=='none'){renderSleepCard();}},30000);setInterval(renderTodayCard,120000);
 
 (async()=>{
   try{idb=await openDB();}catch(e){$('#episode').innerHTML='<div class="card"><p>เบราว์เซอร์นี้เก็บข้อมูลไม่ได้ ลองเปิดด้วย Chrome แบบปกติ (ไม่ใช่โหมดไม่ระบุตัวตน)</p></div>';return;}
